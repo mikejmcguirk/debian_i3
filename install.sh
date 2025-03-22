@@ -233,6 +233,8 @@ fi
 git clone --bare https://github.com/mikejmcguirk/dotfiles "$HOME/.cfg"
 git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
+# TODO: For pulling my programming projects, do I pull from github or my local backups?
+
 ################
 # Rust Ecosystem
 ################
