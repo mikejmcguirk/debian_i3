@@ -112,6 +112,22 @@ sudo apt update
 sudo apt install -y brave-browser
 sudo apt install -y wezterm
 
+##################
+# Python Ecosystem
+##################
+
+sudo apt install -y python3-full
+sudo apt install -y python3-pip # TODO: Wait, do I need this?
+sudo apt install -y pipx
+pipx ensurepath # TODO: What does this do? Does it contradict my .bashrc?
+source "$HOME/.bashrc" # TODO: Get the runner name and make this an absolute path
+# FUTURE: Add handling for pipx completions
+
+pipx install nvitop
+pipx install beautysh
+pipx install ruff
+pipx install python-lsp-server[all]
+
 ################
 # Rust Ecosystem
 ################
@@ -155,31 +171,16 @@ npm i -g bash-language-server
 # TODO: lua_ls
 # TODO: wezterm
 
-##################
-# Python Ecosystem
-##################
-
-sudo apt install -y python3-full
-sudo apt install -y python3-pip # TODO: Wait, do I need this?
-sudo apt install -y python3-pipx
-pipx ensurepath # TODO: What does this do? Does it contradict my .bashrc?
-source "$HOME/.bashrc" # TODO: Get the runner name and make this an absolute path
-
-pipx install nvitop
-pipx install beautysh
-pipx install ruff
-pipx install python-lsp-server[all]
-
 ##############
 # Go Ecosystem
 ##############
 
 rm -rf usr/local/go # TODO: Does this need to check if it exists?
 wget -P "$HOME/.local" $go_dl_url # TODO: Why is this going to .local?
-tar -C /usr/local -xzf "$HOME/.local/$go_tar"
+sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
 rm "$HOME/.local/$go_tar"
 
-# TODO: I'm pretty sure there's pathing you need to do here to make Go work
+# TODO: Command not found. Need to deal with lack of pathing
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/gopls@latest
 go install github.com/nametake/golangci-lint-langserver@latest
