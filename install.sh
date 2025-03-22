@@ -14,6 +14,7 @@
 # TODO: Get the rest of the old scripting
 
 # Questions:
+# nVidia drivers
 # How to handle file backups (both creating and importing from old system)
 # What Chron jobs to setup and how to manage?
 # rsync?
@@ -222,11 +223,12 @@ if [ -d "$btop_install_dir" ]; then
 else
     echo "No existing Btop installation found at $btop_install_dir"
 fi
+# [ ! -d "$btop_install_dir" ] && mkdir "$btop_install_dir"
 
-wget -P "$HOME/.local/" $btop_url
-tar xjvf "$HOME/.local/$btop_file" -C "$btop_install_dir"
+wget -P "$HOME/.local/bin" $btop_url
+tar xjvf "$HOME/.local/bin/$btop_file" -C "$HOME/.local/bin/"
 bash "$btop_install_dir/install.sh"
-rm "$HOME/.local/$btop_file"
+rm "$HOME/.local/bin/$btop_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
@@ -246,9 +248,9 @@ else
     echo "No existing lua_ls installation found at $lua_ls_install_dir"
 fi
 
-wget -P "$HOME/.local/" $lua_ls_url
-tar xjvf "$HOME/.local/$lua_ls_file" -C "$lua_ls_install_dir"
-rm "$HOME/.local/$lua_ls_file"
+wget -P "$HOME/.local/bin" $lua_ls_url
+tar xjvf "$HOME/.local/bin/$lua_ls_file" -C "$HOME/.local/bin"
+rm "$HOME/.local/bin/$lua_ls_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
