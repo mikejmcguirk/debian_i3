@@ -21,7 +21,7 @@ Then login as your admin user.
 Run this script with:
 ```bash
 wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/install.sh
-sudo install.sh
+bash install.sh
 ```
 
 Save the update script. Run that with sudo bash as needed

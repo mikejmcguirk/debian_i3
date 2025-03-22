@@ -19,19 +19,20 @@ nerd_font_filename="Cousine.zip"
 # Check we are a Sudo user
 ##########################
 
-if [ -z "$SUDO_USER" ]; then
-    echo "You ain't sudoin'"
-    exit 1
-fi
-user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+# if [ -z "$SUDO_USER" ]; then
+#     echo "You ain't sudoin'"
+#     exit 1
+# fi
+# user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 
 #############################
 # Confirm we want to continue
 #############################
 
 echo "This is a fresh install script. It will configure your system."
-echo "Target user: $SUDO_USER"
-echo "Target home directory: $user_home"
+# echo "Target user: $SUDO_USER"
+# echo "Target home directory: $user_home"
+echo "Target home directory: $HOME"
 read -p "Continue? (y/N): " choice
 if [[ "$choice" != "y" && "$choice" != "Y" ]]; then
     echo "Exiting."
@@ -42,8 +43,8 @@ fi
 # Create Directories
 ####################
 
-[ ! -d "$user_home/.local" ] && mkdir "$user_home/.local"
-[ ! -d "$user_home/.fonts" ] && mkdir "$user_home/.fonts"
+[ ! -d "$HOME/.local" ] && mkdir "$HOME/.local"
+[ ! -d "$HOME/.fonts" ] && mkdir "$HOME/.fonts"
 
 ##################
 # System Hardening
@@ -67,34 +68,34 @@ chmod 600 /etc/shadow
 # Install apt managed software
 ##############################
 
-apt update
-apt upgrade -y
-apt autoremove -y # TODO: Does this replace clean and autoclean?
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove -y # TODO: Does this replace clean and autoclean?
 
-apt install -y build-essential
-apt install -y xclip # For copy/paste out of Neovim
-apt install -y vlc
-apt install -y curl
-apt install -y qbittorrent
-apt install -y wireguard
-apt install -y openresolv
-apt install -y natpmpc
-apt install -y shellcheck
-apt install -y fd-find
-apt install -y fzf
-apt install -y llvm
-apt install -y sqlite3
+sudo apt install -y build-essential
+sudo apt install -y xclip # For copy/paste out of Neovim
+sudo apt install -y vlc
+sudo apt install -y curl
+sudo apt install -y qbittorrent
+sudo apt install -y wireguard
+sudo apt install -y openresolv
+sudo apt install -y natpmpc
+sudo apt install -y shellcheck
+sudo apt install -y fd-find
+sudo apt install -y fzf
+sudo apt install -y llvm
+sudo apt install -y sqlite3
 # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
-apt install -y linux-perf
+sudo apt install -y linux-perf
 # apt install -y libreoffice
 
 # TODO: Do we need Vim? Or does Nvim replace it if we build from source?
 
 # TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
 
-apt install -y git
+sudo apt install -y git
 git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
 # sudo apt install git-credential-manager # TODO: I think this is the move
@@ -105,9 +106,9 @@ echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] http
 curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
 
-apt update
-apt install -y brave-browser
-apt install -y wezterm
+sudo apt update
+sudo apt install -y brave-browser
+sudo apt install -y wezterm
 
 ################
 # Rust Ecosystem
@@ -119,12 +120,12 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # TODO: I have some weird hack in my script to add rust-analyzer to make it run on
 # stable instead of nightly. Feels silly
 # rustup component add rust-analyzer
-"$user_home/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-"$user_home/.cargo/bin/cargo" install stylua
-"$user_home/.cargo/bin/cargo" install tokei
-"$user_home/.cargo/bin/cargo" install flamegraph
-"$user_home/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-"$user_home/.cargo/bin/cargo" install cargo-update
+"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+"$HOME/.cargo/bin/cargo" install stylua
+"$HOME/.cargo/bin/cargo" install tokei
+"$HOME/.cargo/bin/cargo" install flamegraph
+"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+"$HOME/.cargo/bin/cargo" install cargo-update
 
 ######################
 # Javascript Ecosystem
@@ -133,7 +134,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # TODO: Do I put this in a variable?
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 # TODO: Can something similar to this be used to make Cargo work?
-export NVM_DIR="$user_home/.nvm"
+export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
@@ -156,11 +157,11 @@ npm i -g bash-language-server
 # Python Ecosystem
 ##################
 
-apt install -y python3-full
-apt install -y python3-pip # TODO: Wait, do I need this?
-apt install -y python3-pipx
+sudo apt install -y python3-full
+sudo apt install -y python3-pip # TODO: Wait, do I need this?
+sudo apt install -y python3-pipx
 pipx ensurepath # TODO: What does this do? Does it contradict my .bashrc?
-source "$user_home/.bashrc" # TODO: Get the runner name and make this an absolute path
+source "$HOME/.bashrc" # TODO: Get the runner name and make this an absolute path
 
 pipx install nvitop
 pipx install beautysh
@@ -172,9 +173,9 @@ pipx install python-lsp-server[all]
 ##############
 
 rm -rf usr/local/go # TODO: Does this need to check if it exists?
-wget -P "$user_home/.local" $go_dl_url # TODO: Why is this going to .local?
-tar -C /usr/local -xzf "$user_home/.local/$go_tar"
-rm "$user_home/.local/$go_tar"
+wget -P "$HOME/.local" $go_dl_url # TODO: Why is this going to .local?
+tar -C /usr/local -xzf "$HOME/.local/$go_tar"
+rm "$HOME/.local/$go_tar"
 
 # TODO: I'm pretty sure there's pathing you need to do here to make Go work
 go install mvdan.cc/gofumpt@latest
@@ -188,25 +189,25 @@ curl -sSfL $go_lint | sh -s -- -b $(go env GOPATH)/bin v1.61.0
 # Add Nerd Font
 ###############
 
-wget -P "$user_home/.fonts" $nerd_font_url
-unzip -o "$user_home/.fonts/$nerd_font_filename" -d ~/.fonts
-rm "$user_home/.fonts/$nerd_font_filename"
+wget -P "$HOME/.fonts" $nerd_font_url
+unzip -o "$HOME/.fonts/$nerd_font_filename" -d ~/.fonts
+rm "$HOME/.fonts/$nerd_font_filename"
 
 ##############
 # Get Dotfiles
 ##############
 
-if ! grep -q ".bashrc_custom" "$user_home/.bashrc"; then
-    cat << 'EOF' >> "$user_home/.bashrc"
-    if [ -f "$user_home/.bashrc_custom" ]; then
-        . "$user_home/.bashrc_custom"
+if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
+    cat << 'EOF' >> "$HOME/.bashrc"
+    if [ -f "$HOME/.bashrc_custom" ]; then
+        . "$HOME/.bashrc_custom"
     fi
 EOF
 fi
 
-git clone --bare https://github.com/mikejmcguirk/dotfiles "$user_home/.cfg"
-git --git-dir="$user_home/.cfg" --work-tree="$user_home" checkout main
-# source "$user_home/.bashrc" # TODO: Maybe?
+git clone --bare https://github.com/mikejmcguirk/dotfiles "$HOME/.cfg"
+git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
+# source "$HOME/.bashrc" # TODO: Maybe?
 
 # TODO: Put the equivalent of autoremove/autoclean at the end
 
