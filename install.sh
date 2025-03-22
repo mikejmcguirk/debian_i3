@@ -249,19 +249,21 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 # Rust Ecosystem
 ################
 
+# NOTE: Commented out for testing because this is the longest step and works reliably
+
 # Rust is added last because it takes the longest and does not require sudo
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
-"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-"$HOME/.cargo/bin/cargo" install stylua
-"$HOME/.cargo/bin/cargo" install tokei
-"$HOME/.cargo/bin/cargo" install flamegraph
-"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-"$HOME/.cargo/bin/cargo" install cargo-update
+# "$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+# "$HOME/.cargo/bin/cargo" install stylua
+# "$HOME/.cargo/bin/cargo" install tokei
+# "$HOME/.cargo/bin/cargo" install flamegraph
+# "$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+# "$HOME/.cargo/bin/cargo" install cargo-update
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
