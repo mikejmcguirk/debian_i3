@@ -6,19 +6,26 @@ set -e # quit on error
 # Declare all variables up front for easier editing
 ###################################################
 
+nvm_install_cmd="wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
+
 go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
 go_tar=$(basename "$go_dl_url")
-go_lint="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
+go_lint_install_cmd="curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.7"
 
 nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
 nerd_font_filename=$(basename "$nerd_font_url")
 
-##########################
-# Check we are a Sudo user
-##########################
+#############################################
+# Check that the script is being run properly
+#############################################
 
 if [ -n "$SUDO_USER" ]; then
     echo "Running this script with sudo will cause pathing to break. Exiting..."
+    exit 1
+fi
+
+if [ "$PWD" != "$HOME" ]; then
+    echo "Error: This script must be run from the home directory ($HOME)."
     exit 1
 fi
 
@@ -72,7 +79,8 @@ chmod 600 "$HOME/.ssh/config"
 
 sudo apt update
 sudo apt upgrade -y
-sudo apt autoremove -y # TODO: Does this replace clean and autoclean?
+sudo apt autoremove -y
+sudo apt autoclean -y
 
 sudo apt install -y build-essential
 sudo apt install -y xclip # For copy/paste out of Neovim
@@ -92,7 +100,7 @@ sudo apt install -y unzip
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
 sudo apt install -y linux-perf
-# apt install -y libreoffice
+sudo apt install -y libreoffice
 sudo apt install -y pkg-config # For cargo updater
 sudo apt install -y libssl-dev # For cargo updater
 
@@ -103,7 +111,8 @@ sudo apt install -y libssl-dev # For cargo updater
 sudo apt install -y git
 git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
-# sudo apt install git-credential-manager # TODO: I think this is the move
+# TODO: sudo apt install git-credential-manager # TODO: I think this is the move
+# But need to actually get into i3 so I can do testing before working on this
 
 sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
@@ -120,11 +129,15 @@ sudo apt install -y wezterm
 ##################
 
 sudo apt install -y python3-full
-sudo apt install -y python3-pip # TODO: Wait, do I need this?
+sudo apt install -y python3-pip
 sudo apt install -y pipx
-pipx ensurepath # TODO: What does this do? Does it contradict my .bashrc?
-source "$HOME/.bashrc" # TODO: Get the runner name and make this an absolute path
-# FUTURE: Add handling for pipx completions
+
+pipx ensurepath # Adds ~/.local/bin to path
+# Add pipx completions
+cat << EOF >> "$HOME/.bashrc"
+
+eval "$(register-python-argcomplete pipx)"
+EOF
 
 pipx install nvitop
 pipx install beautysh
@@ -135,9 +148,8 @@ pipx install python-lsp-server[all]
 # Javascript Ecosystem
 ######################
 
-# TODO: Do I put this in a variable?
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-# TODO: These should be absolute paths
+$nvm_install_cmd
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
@@ -173,7 +185,6 @@ else
     echo "No existing Go installation found at /usr/local/go."
 fi
 
-# echo "Downloading Go from $go_dl_url to $HOME/.local/$go_tar..."
 wget -P "$HOME/.local" "$go_dl_url"
 sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
 rm "$HOME/.local/$go_tar"
@@ -191,13 +202,12 @@ export GOPATH=\$(go env GOPATH)
 export PATH=\$PATH:\$GOPATH/bin
 EOF
 
-# TODO: Command not found. Need to deal with lack of pathing
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/gopls@latest
 go install github.com/nametake/golangci-lint-langserver@latest
 
-# TODO: Why does this have a version number? Does it need to be variabled?
-curl -sSfL $go_lint | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+$go_lint_install_cmd
+golangci-lint --version
 
 ###############
 # Add Nerd Font
@@ -230,11 +240,9 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 # Rust is added last because it takes the longest and does not require sudo
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-# TODO: Is there a way to automatically proceed with the standard installation?
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# TODO: I have some weird hack in my script to add rust-analyzer to make it run on
-# stable instead of nightly. Feels silly
+# NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
 "$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
 "$HOME/.cargo/bin/cargo" install stylua
@@ -242,10 +250,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 "$HOME/.cargo/bin/cargo" install flamegraph
 "$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
 "$HOME/.cargo/bin/cargo" install cargo-update
-
-# source "$HOME/.bashrc" # TODO: Maybe?
-
-# TODO: Put the equivalent of autoremove/autoclean at the end
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
