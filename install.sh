@@ -90,6 +90,8 @@ sudo apt install -y sqlite3
 # They can be checked with apt search linux-perf
 sudo apt install -y linux-perf
 # apt install -y libreoffice
+sudo apt install -y pkg-config # For cargo updater
+sudo apt install -y libssl-dev # For cargo updater
 
 # TODO: Do we need Vim? Or does Nvim replace it if we build from source?
 
@@ -100,7 +102,7 @@ git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
 # sudo apt install git-credential-manager # TODO: I think this is the move
 
-curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
 
 curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
@@ -223,7 +225,6 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
 # Packages I've previously installed, but don't know the purpose of anymore
 # - cmake
-# - libssl-dev
 # - libsystemd-dev
 # - libparted-dev
 # - libicu-dev
@@ -239,7 +240,6 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 # - libevent-dev
 # - ncurses-dev
 # - bison
-# - pkg-config
 # - gh
 # - libc6
 # - libgcc1
