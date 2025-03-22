@@ -142,12 +142,10 @@ sudo apt install -y pipx
 
 pipx ensurepath # Adds ~/.local/bin to path
 # Add pipx completions
-# NOTE: Commented out here. Breaks .bashrc
-# TODO: Maybe add a note to run this afterward
-# cat << EOF >> "$HOME/.bashrc"
-#
-# eval "$(register-python-argcomplete pipx)"
-# EOF
+cat << 'EOF' >> "$HOME/.bashrc"
+
+eval "$(register-python-argcomplete pipx)"
+EOF
 
 pipx install nvitop
 pipx install beautysh
