@@ -11,7 +11,7 @@ Login first as root. Do the following:
 
 ```bash
 apt update
-aupt install sudo
+apt install sudo
 usermod -aG sudo admin_user
 reboot
 ```
