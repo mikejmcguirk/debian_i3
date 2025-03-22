@@ -19,19 +19,16 @@ nerd_font_filename="Cousine.zip"
 # Check we are a Sudo user
 ##########################
 
-# if [ -z "$SUDO_USER" ]; then
-#     echo "You ain't sudoin'"
-#     exit 1
-# fi
-# user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+if [ -n "$SUDO_USER" ]; then
+    echo "Running this script with sudo will cause pathing to break. Exiting..."
+    exit 1
+fi
 
 #############################
 # Confirm we want to continue
 #############################
 
 echo "This is a fresh install script. It will configure your system."
-# echo "Target user: $SUDO_USER"
-# echo "Target home directory: $user_home"
 echo "Target home directory: $HOME"
 read -p "Continue? (y/N): " choice
 if [[ "$choice" != "y" && "$choice" != "Y" ]]; then
@@ -85,6 +82,7 @@ sudo apt install -y fd-find
 sudo apt install -y fzf
 sudo apt install -y llvm
 sudo apt install -y sqlite3
+sudo apt install -y unzip
 # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
