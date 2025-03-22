@@ -7,7 +7,8 @@ set -e # quit on error
 ###################################################
 
 # https://github.com/nvm-sh/nvm
-nvm_install_cmd="wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
+# Check where this is used to make sure install cmd is still up-to-date
+nvm_install_url="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh"
 
 # https://go.dev/doc/install
 go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
@@ -155,7 +156,7 @@ pipx install python-lsp-server[all]
 # Javascript Ecosystem
 ######################
 
-$nvm_install_cmd
+wet -qO- $nvm_install_url | bash
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
