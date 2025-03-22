@@ -6,14 +6,12 @@ set -e # quit on error
 # Declare all variables up front for easier editing
 ###################################################
 
-# TODO: The Go filename should derive from the url
 go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
-go_tar="go1.24.1.linux-amd64.tar.gz"
+go_tar=$(basename "$go_dl_url")
 go_lint="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
-# TODO: the filename at least should derive from the font URL
 nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
-nerd_font_filename="Cousine.zip"
+nerd_font_filename=$(basename "$nerd_font_url")
 
 ##########################
 # Check we are a Sudo user
@@ -57,9 +55,16 @@ sudo ufw --force enable
 
 sudo chmod 600 /etc/shadow
 
-# TODO: How to make SSH out work. My Mint machine doesn't have an SSH service so I guess
-# that's not necessary
-# TODO: SSH hardening
+mkdir "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+
+# FUTURE: There are settings that can be added as well to specify stronger cryptography
+cat << EOF > ~/.ssh/config
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 30
+EOF
+chmod 600 "$HOME/.ssh/config"
 
 ##############################
 # Install apt managed software
