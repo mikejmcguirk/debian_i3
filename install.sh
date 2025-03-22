@@ -215,7 +215,7 @@ EOF
 # Install Btop
 ##############
 
-btop_install_dir="$HOME/local/bin/btop"
+btop_install_dir="$HOME/.local/bin/btop"
 
 if [ -d "$btop_install_dir" ]; then
     echo "Removing existing Btop installation at $btop_install_dir..."
@@ -239,7 +239,7 @@ EOF
 # Install Lua LS
 ################
 
-lua_ls_install_dir="$HOME/local/bin/lua_ls"
+lua_ls_install_dir="$HOME/.local/bin/lua_ls"
 
 if [ -d "$lua_ls_install_dir" ]; then
     echo "Removing existing lua_ls installation at $lua_ls_install_dir..."
