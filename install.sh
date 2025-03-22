@@ -11,6 +11,32 @@
 # Something you could do is have a short script to run in sudo to do apt upgrades, then
 # Another script for handling unmanaged/less managed software
 
+# TODO: Get the rest of the old scripting
+
+# Questions:
+# How to handle file backups (both creating and importing from old system)
+# What Chron jobs to setup and how to manage?
+# rsync?
+# Audio
+# Disk management
+# Need a note at the end to manually pull Wireguard configs
+# Brave bookmarks (saving/importing)
+# Brave default pages (I think these just have to be manually done)
+# Discord (is there a better way?)
+# Obsidian (unsure how to do)
+# Screenshot program
+# File manager
+# X11
+# lightdm or some other thing for display
+# qbittorrent config
+# Steam/Games (Are STS and STP Steam or GOG or something)
+# Calculator
+# Redshift
+# Image backgrounds
+# I added HexChat for IRC and that's probably fine
+# How does i3 display management work?
+# Is it not possible to download a Paint clone on Linux?
+
 set -e # quit on error
 
 ###################################################
@@ -21,6 +47,12 @@ set -e # quit on error
 nvim_url="https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz"
 nvim_tar=$(basename "$nvim_url")
 nvim_config="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
+
+btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86_64-linux-musl.tbz"
+btop_file=$(basename "$btop_url")
+
+lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
+lua_ls_file=$(basename "$lua_ls_file")
 
 # https://github.com/nvm-sh/nvm
 # Check where this is used to make sure install cmd is still up-to-date
@@ -163,7 +195,7 @@ fi
 git clone $nvim_config "$HOME/.config/nvim"
 
 if [ -d "/opt/nvim" ]; then
-    echo "Removing existing Nvm installation at /opt/nvim..."
+    echo "Removing existing Nvim installation at /opt/nvim..."
     sudo rm -rf /opt/nvim
 else
     echo "No existing Nvim installation found at /opt/nvim"
@@ -176,6 +208,51 @@ rm "$HOME/.local/$nvim_tar"
 cat << 'EOF' >> "$HOME/.bashrc"
 
 export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+EOF
+
+##############
+# Install Btop
+##############
+
+btop_install_dir="$HOME/local/bin/btop"
+
+if [ -d "$btop_install_dir" ]; then
+    echo "Removing existing Btop installation at $btop_install_dir..."
+    rm -rf "$btop_install_dir"
+else
+    echo "No existing Btop installation found at $btop_install_dir"
+fi
+
+wget -P "$HOME/.local/" $btop_url
+tar xjvf "$HOME/.local/$btop_file" -C "$btop_install_dir"
+bash "$btop_install_dir/install.sh"
+rm "$HOME/.local/$btop_file"
+
+cat << 'EOF' >> "$HOME/.bashrc"
+
+export PATH="$PATH:$HOME/.local/bin/btop"
+EOF
+
+################
+# Install Lua LS
+################
+
+lua_ls_install_dir="$HOME/local/bin/lua_ls"
+
+if [ -d "$lua_ls_install_dir" ]; then
+    echo "Removing existing lua_ls installation at $lua_ls_install_dir..."
+    rm -rf "$lua_ls_install_dir"
+else
+    echo "No existing lua_ls installation found at $lua_ls_install_dir"
+fi
+
+wget -P "$HOME/.local/" $lua_ls_url
+tar xjvf "$HOME/.local/$lua_ls_file" -C "$lua_ls_install_dir"
+rm "$HOME/.local/$lua_ls_file"
+
+cat << 'EOF' >> "$HOME/.bashrc"
+
+export PATH="$PATH:$HOME/.local/bin/lua_ls"
 EOF
 
 ##################
