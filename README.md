@@ -18,6 +18,10 @@ reboot
 
 Then login as your admin user.
 
-Run this script with ``wget -qO- https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/install.sh | sudo bash``
+Run this script with:
+```bash
+wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/install.sh
+sudo install.sh
+```
 
 Save the update script. Run that with sudo bash as needed
