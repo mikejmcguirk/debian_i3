@@ -6,12 +6,16 @@ set -e # quit on error
 # Declare all variables up front for easier editing
 ###################################################
 
+# https://github.com/nvm-sh/nvm
 nvm_install_cmd="wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
 
+# https://go.dev/doc/install
 go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
 go_tar=$(basename "$go_dl_url")
+# https://golangci-lint.run/welcome/install/#local-installation
 go_lint_install_cmd="curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.7"
 
+# https://www.nerdfonts.com/font-downloads
 nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
 nerd_font_filename=$(basename "$nerd_font_url")
 
