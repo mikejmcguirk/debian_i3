@@ -13,7 +13,10 @@ nvm_install_cmd="wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/
 go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
 go_tar=$(basename "$go_dl_url")
 # https://golangci-lint.run/welcome/install/#local-installation
-go_lint_install_cmd="curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.7"
+# NOTE: Because the full cmd relies on go env GOPATH, we cannot declare it here
+# Check the full curl|sh command on the website relative to what I have below
+go_lint_url="https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh"
+go_lint_dir="bin v1.64.7"
 
 # https://www.nerdfonts.com/font-downloads
 nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
@@ -210,7 +213,7 @@ go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/gopls@latest
 go install github.com/nametake/golangci-lint-langserver@latest
 
-$go_lint_install_cmd
+curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
 golangci-lint --version
 
 ###############
