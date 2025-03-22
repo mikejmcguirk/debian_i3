@@ -53,7 +53,7 @@ btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86
 btop_file=$(basename "$btop_url")
 
 lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
-lua_ls_file=$(basename "$lua_ls_file")
+lua_ls_file=$(basename "$lua_ls_url")
 
 # https://github.com/nvm-sh/nvm
 # Check where this is used to make sure install cmd is still up-to-date
@@ -223,8 +223,8 @@ if [ -d "$btop_install_dir" ]; then
 else
     echo "No existing Btop installation found at $btop_install_dir"
 fi
-# [ ! -d "$btop_install_dir" ] && mkdir "$btop_install_dir"
 
+#btop unpacks to a btop subfolder
 wget -P "$HOME/.local/bin" $btop_url
 tar xjvf "$HOME/.local/bin/$btop_file" -C "$HOME/.local/bin/"
 bash "$btop_install_dir/install.sh"
@@ -232,7 +232,7 @@ rm "$HOME/.local/bin/$btop_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
-export PATH="$PATH:$HOME/.local/bin/btop"
+export PATH="$PATH:$HOME/.local/bin/btop/bin"
 EOF
 
 ################
@@ -248,13 +248,14 @@ else
     echo "No existing lua_ls installation found at $lua_ls_install_dir"
 fi
 
-wget -P "$HOME/.local/bin" $lua_ls_url
-tar xjvf "$HOME/.local/bin/$lua_ls_file" -C "$HOME/.local/bin"
-rm "$HOME/.local/bin/$lua_ls_file"
+# This tar file unpacks in the same directory it's in
+wget -P "$lua_ls_install_dir" $lua_ls_url
+tar xzf "$lua_ls_install_dir/$lua_ls_file" -C "$lua_ls_install_dir"
+rm "$lua_ls_install_dir/$lua_ls_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
-export PATH="$PATH:$HOME/.local/bin/lua_ls"
+export PATH="$PATH:$HOME/.local/bin/lua_ls/bin"
 EOF
 
 ##################
