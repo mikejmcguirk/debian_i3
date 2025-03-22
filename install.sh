@@ -99,19 +99,21 @@ git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
 # sudo apt install git-credential-manager # TODO: I think this is the move
 
-sudo apt install curl
-sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+apt install curl
+curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-sudo apt update
-sudo apt install brave-browser
+apt update
+apt install -y brave-browser
 
 curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
+apt install -y wezterm
 
 ################
 # Rust Ecosystem
 ################
 
+# TODO: Is there a way to automatically proceed with the standard installation?
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # TODO: I have some weird hack in my script to add rust-analyzer to make it run on
