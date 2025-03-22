@@ -175,13 +175,35 @@ npm i -g bash-language-server
 # Go Ecosystem
 ##############
 
-rm -rf usr/local/go # TODO: Does this need to check if it exists?
-wget -P "$HOME/.local" $go_dl_url # TODO: Why is this going to .local?
+if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
+    echo "Error: go_dl_url and go_tar must be set."
+    exit 1
+fi
+
+if [ -d "/usr/local/go" ]; then
+    echo "Removing existing Go installation at /usr/local/go..."
+    sudo rm -rf /usr/local/go
+else
+    echo "No existing Go installation found at /usr/local/go."
+fi
+
+# echo "Downloading Go from $go_dl_url to $HOME/.local/$go_tar..."
+wget -P "$HOME/.local" "$go_dl_url"
 sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
+go version
 rm "$HOME/.local/$go_tar"
+
 export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$(go env GOPATH)/bin
-source $HOME/.bashrc
+export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$GOPATH/bin
+echo "Adding Go paths to $HOME/.bashrc..."
+cat << EOF >> "$HOME/.bashrc"
+
+# Go environment setup
+export PATH=\$PATH:/usr/local/go/bin
+export GOPATH=\$(go env GOPATH)
+export PATH=\$PATH:\$GOPATH/bin
+EOF
 
 # TODO: Command not found. Need to deal with lack of pathing
 go install mvdan.cc/gofumpt@latest
@@ -205,9 +227,9 @@ rm "$HOME/.fonts/$nerd_font_filename"
 
 if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
     cat << 'EOF' >> "$HOME/.bashrc"
-    if [ -f "$HOME/.bashrc_custom" ]; then
-        . "$HOME/.bashrc_custom"
-    fi
+if [ -f "$HOME/.bashrc_custom" ]; then
+    . "$HOME/.bashrc_custom"
+fi
 EOF
 fi
 
