@@ -249,9 +249,9 @@ echo "Adding Go paths to $HOME/.bashrc..."
 cat << 'EOF' >> "$HOME/.bashrc"
 
 # Go environment setup
-export PATH=\$PATH:/usr/local/go/bin
-export GOPATH=\$(go env GOPATH)
-export PATH=\$PATH:\$GOPATH/bin
+export PATH=$PATH:/usr/local/go/bin
+export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$GOPATH/bin
 EOF
 
 go install mvdan.cc/gofumpt@latest
@@ -294,7 +294,7 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
 # NOTE: Commented out for testing because this is the longest step and works reliably
 
-# Rust is added last because it takes the longest and does not require sudo
+# Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
