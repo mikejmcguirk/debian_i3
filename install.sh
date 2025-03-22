@@ -1,10 +1,26 @@
 #!/bin/bash
 
+# TODO: I am wondering if the move here is to actually make this part of the .config repo,
+# bring in the config repo, and have this function as an update script as well
+# This way it can all be done as one piece
+# The thing I wonder about is, it would probably be useful if my config repo could be used
+# in multiple types of systems, so maybe still keep it as a separate piece
+# I feel more strongly about using this as an upgrade script, though it introduces some
+# of the obnoxious variable edits, though we might need those in an upgrade script anyway
+# The other problem with making install/upgrade one thing is handling paths
+# Something you could do is have a short script to run in sudo to do apt upgrades, then
+# Another script for handling unmanaged/less managed software
+
 set -e # quit on error
 
 ###################################################
 # Declare all variables up front for easier editing
 ###################################################
+
+# NOTE: Check the instructions as well as the tar URL in case they change
+nvim_url="https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz"
+nvim_tar=$(basename "$nvim_url")
+nvim_config="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
 
 # https://github.com/nvm-sh/nvm
 # Check where this is used to make sure install cmd is still up-to-date
@@ -54,6 +70,8 @@ fi
 ####################
 
 [ ! -d "$HOME/.local" ] && mkdir "$HOME/.local"
+[ ! -d "$HOME/.local/bin" ] && mkdir "$HOME/.local/bin"
+[ ! -d "$HOME/.config" ] && mkdir "$HOME/.config"
 [ ! -d "$HOME/.fonts" ] && mkdir "$HOME/.fonts"
 [ ! -d "$HOME/.ssh" ] && mkdir "$HOME/.ssh"
 
@@ -74,7 +92,7 @@ sudo chmod 600 /etc/shadow
 chmod 700 "$HOME/.ssh"
 
 # FUTURE: There are settings that can be added as well to specify stronger cryptography
-cat << EOF > ~/.ssh/config
+cat << 'EOF' > ~/.ssh/config
 Host *
     ServerAliveInterval 60
     ServerAliveCountMax 30
@@ -132,6 +150,34 @@ sudo apt update
 sudo apt install -y brave-browser
 sudo apt install -y wezterm
 
+################
+# Install Neovim
+################
+
+if [ -z "$nvim_url" ] || [ -z "$nvim_tar" ] || [ -z "$nvim_config" ] ; then
+    echo "Error: nvim_url, nvim_tar, and nvim_config must be set"
+    exit 1
+fi
+
+[ ! -d "$HOME/.config/nvim" ] && mkdir "$HOME/.config/nvim"
+git clone $nvim_config "$HOME/.config/nvim"
+
+if [ -d "/opt/nvim" ]; then
+    echo "Removing existing Nvm installation at /opt/nvim..."
+    sudo rm -rf /opt/nvim
+else
+    echo "No existing Nvim installation found at /opt/nvim"
+fi
+
+curl -LO --output-dir "$HOME/.local" "$nvim_url"
+sudo tar -C /opt -xzf "$HOME/.local/$nvim_tar"
+rm "$HOME/.local/$nvim_tar"
+
+cat << 'EOF' >> "$HOME/.bashrc"
+
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+EOF
+
 ##################
 # Python Ecosystem
 ##################
@@ -173,9 +219,7 @@ npm i -g vscode-langservers-extracted
 npm i -g bash-language-server
 
 # TODO: btop
-# TODO: nvim
 # TODO: lua_ls
-# TODO: wezterm
 
 ##############
 # Go Ecosystem
@@ -202,7 +246,7 @@ export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$GOPATH/bin
 go version
 echo "Adding Go paths to $HOME/.bashrc..."
-cat << EOF >> "$HOME/.bashrc"
+cat << 'EOF' >> "$HOME/.bashrc"
 
 # Go environment setup
 export PATH=\$PATH:/usr/local/go/bin
@@ -238,6 +282,7 @@ fi
 EOF
 fi
 
+# TODO: The URL should be a variable
 git clone --bare https://github.com/mikejmcguirk/dotfiles "$HOME/.cfg"
 git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
