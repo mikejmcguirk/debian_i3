@@ -50,15 +50,15 @@ fi
 # System Hardening
 ##################
 
-passwd -l root # disable root login with a password. Reverse with passwd -u root
+sudo passwd -l root # disable root login with a password. Reverse with passwd -u root
 
-apt install -y ufw
-ufw default deny incoming # Should be default, but let's be sure
-ufw default allow outgoing # Also should be default
-ufw logging on
-ufw --force enable
+sudo apt install -y ufw
+sudo ufw default deny incoming # Should be default, but let's be sure
+sudo ufw default allow outgoing # Also should be default
+sudo ufw logging on
+sudo ufw --force enable
 
-chmod 600 /etc/shadow
+sudo chmod 600 /etc/shadow
 
 # TODO: How to make SSH out work. My Mint machine doesn't have an SSH service so I guess
 # that's not necessary
