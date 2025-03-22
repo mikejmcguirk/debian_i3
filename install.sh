@@ -248,6 +248,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # TODO: If still using lightdm, add this to config: allow-root=false
 
+echo "Install script complete"
+echo "Reboot to ensure all changes take effect"
+
 ###############
 # Unused/Extras
 ###############
