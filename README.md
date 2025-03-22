@@ -5,7 +5,7 @@ For Debian 12
 When installing:
 
 - I personally don't use the graphical install
-- At the software selection prompt, only choose standard system utilities and SSH server
+- At the software selection prompt, only choose standard system utilities
 
 Login first as root. Do the following:
 
