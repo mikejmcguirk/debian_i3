@@ -55,6 +55,7 @@ fi
 
 [ ! -d "$HOME/.local" ] && mkdir "$HOME/.local"
 [ ! -d "$HOME/.fonts" ] && mkdir "$HOME/.fonts"
+[ ! -d "$HOME/.ssh" ] && mkdir "$HOME/.ssh"
 
 ##################
 # System Hardening
@@ -70,7 +71,6 @@ sudo ufw --force enable
 
 sudo chmod 600 /etc/shadow
 
-mkdir "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
 # FUTURE: There are settings that can be added as well to specify stronger cryptography
