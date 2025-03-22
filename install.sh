@@ -156,7 +156,7 @@ pipx install python-lsp-server[all]
 # Javascript Ecosystem
 ######################
 
-wet -qO- $nvm_install_url | bash
+wget -qO- $nvm_install_url | bash
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
