@@ -126,30 +126,13 @@ pipx install beautysh
 pipx install ruff
 pipx install python-lsp-server[all]
 
-################
-# Rust Ecosystem
-################
-
-# TODO: Is there a way to automatically proceed with the standard installation?
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# TODO: I have some weird hack in my script to add rust-analyzer to make it run on
-# stable instead of nightly. Feels silly
-# rustup component add rust-analyzer
-"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-"$HOME/.cargo/bin/cargo" install stylua
-"$HOME/.cargo/bin/cargo" install tokei
-"$HOME/.cargo/bin/cargo" install flamegraph
-"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-"$HOME/.cargo/bin/cargo" install cargo-update
-
 ######################
 # Javascript Ecosystem
 ######################
 
 # TODO: Do I put this in a variable?
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-# TODO: Can something similar to this be used to make Cargo work?
+# TODO: These should be absolute paths
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
@@ -188,12 +171,12 @@ fi
 # echo "Downloading Go from $go_dl_url to $HOME/.local/$go_tar..."
 wget -P "$HOME/.local" "$go_dl_url"
 sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
-go version
 rm "$HOME/.local/$go_tar"
 
 export PATH=$PATH:/usr/local/go/bin
 export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$GOPATH/bin
+go version
 echo "Adding Go paths to $HOME/.bashrc..."
 cat << EOF >> "$HOME/.bashrc"
 
@@ -225,6 +208,7 @@ rm "$HOME/.fonts/$nerd_font_filename"
 
 if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
     cat << 'EOF' >> "$HOME/.bashrc"
+
 if [ -f "$HOME/.bashrc_custom" ]; then
     . "$HOME/.bashrc_custom"
 fi
@@ -233,6 +217,27 @@ fi
 
 git clone --bare https://github.com/mikejmcguirk/dotfiles "$HOME/.cfg"
 git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
+
+################
+# Rust Ecosystem
+################
+
+# Rust is added last because it takes the longest and does not require sudo
+# If you do this in the middle of the install, the sudo "session" actually times out
+
+# TODO: Is there a way to automatically proceed with the standard installation?
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# TODO: I have some weird hack in my script to add rust-analyzer to make it run on
+# stable instead of nightly. Feels silly
+# rustup component add rust-analyzer
+"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+"$HOME/.cargo/bin/cargo" install stylua
+"$HOME/.cargo/bin/cargo" install tokei
+"$HOME/.cargo/bin/cargo" install flamegraph
+"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+"$HOME/.cargo/bin/cargo" install cargo-update
+
 # source "$HOME/.bashrc" # TODO: Maybe?
 
 # TODO: Put the equivalent of autoremove/autoclean at the end
