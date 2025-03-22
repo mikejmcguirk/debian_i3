@@ -179,6 +179,9 @@ rm -rf usr/local/go # TODO: Does this need to check if it exists?
 wget -P "$HOME/.local" $go_dl_url # TODO: Why is this going to .local?
 sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
 rm "$HOME/.local/$go_tar"
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$(go env GOPATH)/bin
+source $HOME/.bashrc
 
 # TODO: Command not found. Need to deal with lack of pathing
 go install mvdan.cc/gofumpt@latest
