@@ -1,44 +1,7 @@
 #!/bin/bash
 
-# TODO: I am wondering if the move here is to actually make this part of the .config repo,
-# bring in the config repo, and have this function as an update script as well
-# This way it can all be done as one piece
-# The thing I wonder about is, it would probably be useful if my config repo could be used
-# in multiple types of systems, so maybe still keep it as a separate piece
-# I feel more strongly about using this as an upgrade script, though it introduces some
-# of the obnoxious variable edits, though we might need those in an upgrade script anyway
-# The other problem with making install/upgrade one thing is handling paths
-# Something you could do is have a short script to run in sudo to do apt upgrades, then
-# Another script for handling unmanaged/less managed software
-
-# TODO: Get the rest of the old scripting
-
-# Questions:
-# nVidia drivers
-# How to handle file backups (both creating and importing from old system)
-# What Chron jobs to setup and how to manage?
-# rsync?
-# Audio
-# Disk management
-# Need a note at the end to manually pull Wireguard configs
-# Brave bookmarks (saving/importing)
-# Brave default pages (I think these just have to be manually done)
-# Discord (is there a better way?)
-# Screenshot program
-# File manager
-# X11
-# lightdm or some other thing for display
-# qbittorrent config
-# Steam/Games (Are STS and STP Steam or GOG or something)
-# Calculator
-# Redshift
-# Image backgrounds
-# I added HexChat for IRC and that's probably fine
-# How does i3 display management work?
-# Is it not possible to download a Paint clone on Linux?
-# It might be helpful to download a GUI package manager for .deb files
-
 set -e # quit on error
+cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 
 ###################################################
 # Declare all variables up front for easier editing
@@ -162,7 +125,9 @@ sudo apt install -y fd-find
 sudo apt install -y fzf
 sudo apt install -y llvm
 sudo apt install -y sqlite3
+sudo apt install -y vim
 sudo apt install -y unzip
+sudo apt install -y python3-neovim
 # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
@@ -170,8 +135,6 @@ sudo apt install -y linux-perf
 sudo apt install -y libreoffice
 sudo apt install -y pkg-config # For cargo updater
 sudo apt install -y libssl-dev # For cargo updater
-
-# TODO: Do we need Vim? Or does Nvim replace it if we build from source?
 
 # TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
 
@@ -392,21 +355,19 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 # Rust Ecosystem
 ################
 
-# NOTE: Commented out for testing because this is the longest step and works reliably
-
 # Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
-# "$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-# "$HOME/.cargo/bin/cargo" install stylua
-# "$HOME/.cargo/bin/cargo" install tokei
-# "$HOME/.cargo/bin/cargo" install flamegraph
-# "$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-# "$HOME/.cargo/bin/cargo" install cargo-update
+"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+"$HOME/.cargo/bin/cargo" install stylua
+"$HOME/.cargo/bin/cargo" install tokei
+"$HOME/.cargo/bin/cargo" install flamegraph
+"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+"$HOME/.cargo/bin/cargo" install cargo-update
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
@@ -414,43 +375,30 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
 # TODO: If still using lightdm, add this to config: allow-root=false
 
+############
+# Install i3
+############
+
+sudo apt install -y xorg
+sudo apt install -y i3
+
+echo "Creating ~/.xinitrc to start i3 with startx..."
+cat << 'EOF' > "$HOME/.xinitrc"
+#!/bin/sh
+# Optional: Add custom startup commands here (e.g., set display settings)
+# xrdb -merge ~/.Xresources  # Uncomment if you use Xresources for config
+exec i3
+EOF
+chmod +x "$HOME/.xinitrc"
+
+# TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
+# if [ -n "$(lspci | grep -i nvidia)" ]; then
+#     echo "Detected NVIDIA GPU, installing drivers..."
+#     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
+#     sudo nvidia-xconfig
+# else
+#     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
+# fi
+
 echo "Install script complete"
 echo "Reboot (or at least resource .bashrc) to ensure all changes take effect"
-
-# TODO: I'm not sure where it goes but you need post run steps
-# - Enter Nvim and do a Lazy update
-# - Install Discord
-
-###############
-# Unused/Extras
-###############
-
-# Packages I've previously installed, but don't know the purpose of anymore
-# - cmake
-# - libsystemd-dev
-# - libparted-dev
-# - libicu-dev
-# - libcairo2
-# - libcairo2-dev
-# - libcurl4-openssl-dev
-# - meson
-# - libdbus-1-dev
-# - libgirepository1.0-dev
-# - doxygen (I forget why I installed this)
-# - libmbedtls-dev
-# - zlib1g-dev
-# - libevent-dev
-# - ncurses-dev
-# - bison
-# - gh
-# - libc6
-# - libgcc1
-# - libgcc-s1
-# - libgssapi-krb5-2
-# - libicu70
-# - liblttng-ust1
-# - libssl3
-# - libstdc++6
-# - libunwind8
-# - zlib1g
-# - peek

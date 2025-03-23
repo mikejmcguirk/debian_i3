@@ -24,4 +24,9 @@ wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/in
 bash install.sh
 ```
 
-Save the update script. Run that with sudo bash as needed
+<!--Save the update script. Run that with sudo bash as needed-->
+
+Post run steps:
+
+- Enter Neovim to make its packages install
+- Install Discord
