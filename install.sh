@@ -24,7 +24,6 @@
 # Brave bookmarks (saving/importing)
 # Brave default pages (I think these just have to be manually done)
 # Discord (is there a better way?)
-# Obsidian (unsure how to do)
 # Screenshot program
 # File manager
 # X11
@@ -37,12 +36,21 @@
 # I added HexChat for IRC and that's probably fine
 # How does i3 display management work?
 # Is it not possible to download a Paint clone on Linux?
+# It might be helpful to download a GUI package manager for .deb files
 
 set -e # quit on error
 
 ###################################################
 # Declare all variables up front for easier editing
 ###################################################
+
+# https://www.spotify.com/de-en/download/linux/
+# Check directions for updated key
+spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
+
+# https://obsidian.md/download
+obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
+obsidian_file=$(basename "$obsidian_url")
 
 # NOTE: Check the instructions as well as the tar URL in case they change
 nvim_url="https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz"
@@ -179,9 +187,13 @@ echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] http
 curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
 
+sudo curl -sS $spotify_key | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg
+echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
+
 sudo apt update
 sudo apt install -y brave-browser
 sudo apt install -y wezterm
+sudo apt isntall -y spotify-client
 
 ################
 # Install Neovim
@@ -257,6 +269,14 @@ cat << 'EOF' >> "$HOME/.bashrc"
 
 export PATH="$PATH:$HOME/.local/bin/lua_ls/bin"
 EOF
+
+##########
+# Obsidian
+##########
+
+curl -LO --output-dir "$HOME/.local" "$obsidian_url"
+sudo apt install "$HOME/.local/$obsidian_file"
+rm "$HOME/.local/$obsidian_file"
 
 ##################
 # Python Ecosystem
@@ -396,6 +416,10 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
 echo "Install script complete"
 echo "Reboot (or at least resource .bashrc) to ensure all changes take effect"
+
+# TODO: I'm not sure where it goes but you need post run steps
+# - Enter Nvim and do a Lazy update
+# - Install Discord
 
 ###############
 # Unused/Extras
