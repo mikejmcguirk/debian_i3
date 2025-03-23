@@ -487,8 +487,8 @@ cat << 'EOF' >> "$HOME/.bashrc"
 export PATH="$PATH:/$HOME/.local/bin/tmux"
 EOF
 
-tmux_home_folder="$HOME/.tmux"
-tmux_plugins_dir="$tmux_home_folder/plugins"
+tmux_config_dir="$HOME/.config/tmux"
+tmux_plugins_dir="$tmux_config_dir/plugins"
 tpm_dir="$tmux_plugins_dir/tpm"
 if ! mkdir -p "$tpm_dir"; then
     echo "Error: Failed to create directory $tpm_dir. Check permissions."
