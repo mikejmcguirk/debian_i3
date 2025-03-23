@@ -275,7 +275,7 @@ EOF
 ##########
 
 curl -LO --output-dir "$HOME/.local" "$obsidian_url"
-sudo apt install "$HOME/.local/$obsidian_file"
+sudo apt install -y "$HOME/.local/$obsidian_file"
 rm "$HOME/.local/$obsidian_file"
 
 ##################
@@ -309,7 +309,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 nvm install --lts
-nvm alias default lts/* # TODO: Is this needed? Looks like it's handled in install cmd
+nvm alias default lts/*
 
 # FUTURE: If needed, add eslint_d and prettier_d
 npm i -g typescript-language-server typescript
@@ -317,9 +317,6 @@ npm i -g eslint
 npm i -g --save-dev prettier
 npm i -g vscode-langservers-extracted
 npm i -g bash-language-server
-
-# TODO: btop
-# TODO: lua_ls
 
 ##############
 # Go Ecosystem
@@ -438,6 +435,10 @@ chmod +x "$ghostty_file"
 
 tmux_git_dir="$HOME/.local/tmux-get"
 [ ! -d "$tmux_git_dir" ] && mkdir "$tmux_git_dir"
+tmux_plugins_dir="$HOME/.tmux/plugins"
+[ ! -d "$tmux_plugins_dir" ] && mkdir "$tmux_plugins_dir"
+tpm_dir="$tmux_plugins_dir/tpm"
+[ ! -d "$tpm_dir" ] && mkdir "$tpm_dir"
 
 git clone $tmux_url "$tmux_git_dir"
 cd "$tmux_git_dir"
@@ -446,13 +447,10 @@ git checkout "$tmux_branch"
 sh autogen.sh
 ./configure && make
 
+echo "tmux build complete"
+
 cd "$HOME"
 rm -rf "$tmux_git_dir"
-
-tmux_plugins_dir="$HOME/.tmux/plugins"
-[ ! -d "$tmux_plugins_dir" ] && mkdir "$tmux_plugins_dir"
-tpm_dir="$tmux_plugins_dir/tpm"
-rm -rf "$tpm_dir"
 
 git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
 

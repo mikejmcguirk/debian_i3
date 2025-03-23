@@ -35,6 +35,6 @@ Post run steps:
 - Enter tmux, use prefix-i to download plugins
 - Pull in Wireguard configs
 - Setup qbittorrent in GUI
-- Configure Brave default pages, add boomarks, and disable ctrl+w/ctrl+W keys
+- Configure Brave default pages, add bookmarks, and disable ctrl+w/ctrl+W keys
 
 (The config repo contains an i3 config. Should not need to generate a new one)
