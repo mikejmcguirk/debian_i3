@@ -136,6 +136,27 @@ sudo apt install -y libreoffice
 sudo apt install -y pkg-config # For cargo updater
 sudo apt install -y libssl-dev # For cargo updater
 
+sudo apt install -y xorg
+sudo apt install -y i3
+
+echo "Creating ~/.xinitrc to start i3 with startx..."
+cat << 'EOF' > "$HOME/.xinitrc"
+#!/bin/sh
+# Optional: Add custom startup commands here (e.g., set display settings)
+# xrdb -merge ~/.Xresources  # Uncomment if you use Xresources for config
+exec i3
+EOF
+chmod +x "$HOME/.xinitrc"
+
+# TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
+# if [ -n "$(lspci | grep -i nvidia)" ]; then
+#     echo "Detected NVIDIA GPU, installing drivers..."
+#     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
+#     sudo nvidia-xconfig
+# else
+#     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
+# fi
+
 # TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
 
 sudo apt install -y git
@@ -374,31 +395,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # sudo update-initramfs -u
 
 # TODO: If still using lightdm, add this to config: allow-root=false
-
-############
-# Install i3
-############
-
-sudo apt install -y xorg
-sudo apt install -y i3
-
-echo "Creating ~/.xinitrc to start i3 with startx..."
-cat << 'EOF' > "$HOME/.xinitrc"
-#!/bin/sh
-# Optional: Add custom startup commands here (e.g., set display settings)
-# xrdb -merge ~/.Xresources  # Uncomment if you use Xresources for config
-exec i3
-EOF
-chmod +x "$HOME/.xinitrc"
-
-# TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
-# if [ -n "$(lspci | grep -i nvidia)" ]; then
-#     echo "Detected NVIDIA GPU, installing drivers..."
-#     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
-#     sudo nvidia-xconfig
-# else
-#     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
-# fi
 
 echo "Install script complete"
 echo "Reboot (or at least resource .bashrc) to ensure all changes take effect"
