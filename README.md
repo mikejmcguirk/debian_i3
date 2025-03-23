@@ -35,6 +35,16 @@ Post run steps:
 - Enter tmux, use prefix-i to download plugins
 - Pull in Wireguard configs
 - Setup qbittorrent in GUI
+- Edit GUIT Spotify settings
+- Create Wireguard configs
 - Configure Brave default pages, add bookmarks, and disable ctrl+w/ctrl+W keys
+- Setup backup jobs
+- Adjust mouse speed/acceleration
+- Verify Redshift is working
 
 (The config repo contains an i3 config. Should not need to generate a new one)
+
+DOTFILES INFO:
+
+https://www.atlassian.com/git/tutorials/dotfiles
+https://wiki.archlinux.org/title/Dotfiles

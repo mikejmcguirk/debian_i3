@@ -42,6 +42,7 @@ utilities
 - hexchat?
 - GIMP or Paint clone
 - GUI package manager (for handling .deb web downloads)
+- can the mouse be configured with a text file?
 
 nVidia drivers
 

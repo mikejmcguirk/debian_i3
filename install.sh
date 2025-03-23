@@ -50,6 +50,8 @@ nerd_font_filename=$(basename "$nerd_font_url")
 
 discord_url="https://discord.com/api/download?platform=linux&format=deb"
 
+dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
+
 #############################################
 # Check that the script is being run properly
 #############################################
@@ -121,20 +123,30 @@ sudo apt autoclean -y
 
 sudo apt install -y build-essential
 sudo apt install -y xclip # For copy/paste out of Neovim
-# Commented out for testing
-# sudo apt install -y vlc
+sudo apt install -y vlc
 sudo apt install -y curl
 sudo apt install -y qbittorrent
 sudo apt install -y wireguard
 sudo apt install -y openresolv
 sudo apt install -y natpmpc
+
+natpmpc_file="$HOME/wireguard.txt"
+echo "Writing natpmpc loop to $natpmpc_file..."
+if cat << 'EOF' > "$natpmpc_file"
+while true ; do date ; natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1 || { echo -e "ERROR with natpmpc command \a" ; break ; } ; sleep 45 ; done
+EOF
+then
+    echo "Successfully wrote to $natpmpc_file."
+else
+    echo "Error: Failed to write to $natpmpc_file."
+    exit 1
+fi
+
 sudo apt install -y shellcheck
 sudo apt install -y fd-find
 sudo apt install -y fzf
-# Commented out for testing
-# sudo apt install -y llvm
-# Commented out for testing
-# sudo apt install -y sqlite3
+sudo apt install -y llvm
+sudo apt install -y sqlite3
 sudo apt install -y vim
 sudo apt install -y unzip
 sudo apt install -y python3-neovim
@@ -142,8 +154,7 @@ sudo apt install -y python3-neovim
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
 sudo apt install -y linux-perf
-# NOTE: Commented out for testing
-# sudo apt install -y libreoffice
+sudo apt install -y libreoffice
 sudo apt install -y pkg-config # For cargo updater
 sudo apt install -y libssl-dev # For cargo updater
 sudo apt install -y mesa-utils # Get OpenGL info
@@ -191,6 +202,36 @@ echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/so
 sudo apt update
 sudo apt install -y brave-browser
 sudo apt install -y spotify-client
+
+username="$USER"
+spotify_prefs_dir="$HOME/.config/spotify/Users/${username}-user"
+prefs_file="$spotify_prefs_dir/prefs"
+
+# In theory this is a dot file, but since it needs to be tied to the username better to
+# create it in the install script
+echo "Creating Spotify preferences directory if it doesn't exist..."
+if ! mkdir -p "$spotify_prefs_dir"; then
+    echo "Error: Failed to create directory $spotify_prefs_dir. Check permissions."
+    exit 1
+fi
+
+if [ -f "$prefs_file" ]; then
+    if grep -q "ui.track_notifications_enabled=false" "$prefs_file"; then
+        echo "The line 'ui.track_notifications_enabled=false' already exists in $prefs_file. Skipping..."
+    else
+        echo "Appending 'ui.track_notifications_enabled=false' to $prefs_file..."
+        echo "ui.track_notifications_enabled=false" >> "$prefs_file"
+    fi
+else
+    echo "Creating $prefs_file and adding the configuration line..."
+    if ! touch "$prefs_file"; then
+        echo "Error: Failed to create $prefs_file. Check permissions."
+        exit 1
+    fi
+    echo "ui.track_notifications_enabled=false" > "$prefs_file"
+fi
+
+echo "Spotify preferences updated successfully."
 
 sudo apt remove -y neovim # Hacky, but whatever
 sudo apt autoremove -y
@@ -322,43 +363,41 @@ npm i -g bash-language-server
 # Go Ecosystem
 ##############
 
-# Note: Commented out for testing
+if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
+    echo "Error: go_dl_url and go_tar must be set."
+    exit 1
+fi
 
-# if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
-#     echo "Error: go_dl_url and go_tar must be set."
-#     exit 1
-# fi
-#
-# if [ -d "/usr/local/go" ]; then
-#     echo "Removing existing Go installation at /usr/local/go..."
-#     sudo rm -rf /usr/local/go
-# else
-#     echo "No existing Go installation found at /usr/local/go."
-# fi
-#
-# wget -P "$HOME/.local" "$go_dl_url"
-# sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
-# rm "$HOME/.local/$go_tar"
-#
-# export PATH=$PATH:/usr/local/go/bin
-# export GOPATH=$(go env GOPATH)
-# export PATH=$PATH:$GOPATH/bin
-# go version
-# echo "Adding Go paths to $HOME/.bashrc..."
-# cat << 'EOF' >> "$HOME/.bashrc"
-#
-# # Go environment setup
-# export PATH=$PATH:/usr/local/go/bin
-# export GOPATH=$(go env GOPATH)
-# export PATH=$PATH:$GOPATH/bin
-# EOF
-#
-# go install mvdan.cc/gofumpt@latest
-# go install golang.org/x/tools/gopls@latest
-# go install github.com/nametake/golangci-lint-langserver@latest
-#
-# curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
-# golangci-lint --version
+if [ -d "/usr/local/go" ]; then
+    echo "Removing existing Go installation at /usr/local/go..."
+    sudo rm -rf /usr/local/go
+else
+    echo "No existing Go installation found at /usr/local/go."
+fi
+
+wget -P "$HOME/.local" "$go_dl_url"
+sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
+rm "$HOME/.local/$go_tar"
+
+export PATH=$PATH:/usr/local/go/bin
+export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$GOPATH/bin
+go version
+echo "Adding Go paths to $HOME/.bashrc..."
+cat << 'EOF' >> "$HOME/.bashrc"
+
+# Go environment setup
+export PATH=$PATH:/usr/local/go/bin
+export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$GOPATH/bin
+EOF
+
+go install mvdan.cc/gofumpt@latest
+go install golang.org/x/tools/gopls@latest
+go install github.com/nametake/golangci-lint-langserver@latest
+
+curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
+golangci-lint --version
 
 #########
 # Discord
@@ -415,11 +454,8 @@ fi
 EOF
 fi
 
-# TODO: The URL should be a variable
-git clone --bare https://github.com/mikejmcguirk/dotfiles "$HOME/.cfg"
+git clone --bare $dotfiles_url "$HOME/.cfg"
 git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
-
-# TODO: For pulling my programming projects, do I pull from github or my local backups?
 
 #########
 # Ghostty
@@ -433,24 +469,31 @@ chmod +x "$ghostty_file"
 # Tmux
 ######
 
-tmux_git_dir="$HOME/.local/tmux-get"
-[ ! -d "$tmux_git_dir" ] && mkdir "$tmux_git_dir"
-tmux_plugins_dir="$HOME/.tmux/plugins"
-[ ! -d "$tmux_plugins_dir" ] && mkdir "$tmux_plugins_dir"
-tpm_dir="$tmux_plugins_dir/tpm"
-[ ! -d "$tpm_dir" ] && mkdir "$tpm_dir"
-
+tmux_git_dir="$HOME/.local/bin/tmux"
+[ ! -d "$tmux_git_dir" ] && mkdir -p "$tmux_git_dir"
 git clone $tmux_url "$tmux_git_dir"
 cd "$tmux_git_dir"
 
 git checkout "$tmux_branch"
 sh autogen.sh
+# Makes into the download folder, so don't delete
 ./configure && make
 
 echo "tmux build complete"
-
 cd "$HOME"
-rm -rf "$tmux_git_dir"
+
+cat << 'EOF' >> "$HOME/.bashrc"
+
+export PATH="$PATH:/$HOME/.local/bin/tmux"
+EOF
+
+tmux_home_folder="$HOME/.tmux"
+tmux_plugins_dir="$tmux_home_folder/plugins"
+tpm_dir="$tmux_plugins_dir/tpm"
+if ! mkdir -p "$tpm_dir"; then
+    echo "Error: Failed to create directory $tpm_dir. Check permissions."
+    exit 1
+fi
 
 git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
 
@@ -458,21 +501,23 @@ git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
 # Rust Ecosystem
 ################
 
-# NOTE: Commented out for testing
-
 # Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
-# "$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-# "$HOME/.cargo/bin/cargo" install stylua
-# "$HOME/.cargo/bin/cargo" install tokei
-# "$HOME/.cargo/bin/cargo" install flamegraph
-# "$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-# "$HOME/.cargo/bin/cargo" install cargo-update
+"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+"$HOME/.cargo/bin/cargo" install stylua
+"$HOME/.cargo/bin/cargo" install tokei
+"$HOME/.cargo/bin/cargo" install flamegraph
+"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+"$HOME/.cargo/bin/cargo" install cargo-update
+
+#########
+# Wrap Up
+#########
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
