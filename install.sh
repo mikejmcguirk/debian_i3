@@ -156,7 +156,7 @@ echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/so
 sudo apt update
 sudo apt install -y brave-browser
 sudo apt install -y wezterm
-sudo apt isntall -y spotify-client
+sudo apt install -y spotify-client
 
 ################
 # Install Neovim
