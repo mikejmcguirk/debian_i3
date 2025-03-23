@@ -487,15 +487,13 @@ cat << 'EOF' >> "$HOME/.bashrc"
 export PATH="$PATH:/$HOME/.local/bin/tmux"
 EOF
 
-tmux_config_dir="$HOME/.config/tmux"
-tmux_plugins_dir="$tmux_config_dir/plugins"
+# tmux list-keys to see where the binding looks to run the script
+tmux_plugins_dir="$HOME/.config/tmux/plugins"
 tpm_dir="$tmux_plugins_dir/tpm"
-if ! mkdir -p "$tpm_dir"; then
-    echo "Error: Failed to create directory $tpm_dir. Check permissions."
-    exit 1
-fi
+power_dir="$tmux_plugins_dir/power"
 
 git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
+git clone https://github.com/wfxr/tmux-power "$power_dir"
 
 ################
 # Rust Ecosystem

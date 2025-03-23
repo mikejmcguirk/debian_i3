@@ -31,7 +31,6 @@ bash install.sh
 Post run steps:
 
 - Enter Neovim to make its packages install
-- Install Discord (maybe)
 - Enter tmux, use prefix-I to download plugins
 - Pull in Wireguard configs
 - Setup qbittorrent in GUI
