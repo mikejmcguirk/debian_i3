@@ -121,7 +121,8 @@ sudo apt autoclean -y
 
 sudo apt install -y build-essential
 sudo apt install -y xclip # For copy/paste out of Neovim
-sudo apt install -y vlc
+# Commented out for testing
+# sudo apt install -y vlc
 sudo apt install -y curl
 sudo apt install -y qbittorrent
 sudo apt install -y wireguard
@@ -130,8 +131,10 @@ sudo apt install -y natpmpc
 sudo apt install -y shellcheck
 sudo apt install -y fd-find
 sudo apt install -y fzf
-sudo apt install -y llvm
-sudo apt install -y sqlite3
+# Commented out for testing
+# sudo apt install -y llvm
+# Commented out for testing
+# sudo apt install -y sqlite3
 sudo apt install -y vim
 sudo apt install -y unzip
 sudo apt install -y python3-neovim
@@ -147,6 +150,8 @@ sudo apt install -y mesa-utils # Get OpenGL info
 sudo apt install -y bison # tmux build dep
 sudo apt install -y ncurses-dev # tmux build dep
 sudo apt install -y libevent-dev # tmux build dep
+sudo apt install -y automake # tmux build dep
+sudo apt install -y autoconf # tmux build dep
 
 sudo apt install -y xorg
 sudo apt install -y i3
@@ -320,41 +325,43 @@ npm i -g bash-language-server
 # Go Ecosystem
 ##############
 
-if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
-    echo "Error: go_dl_url and go_tar must be set."
-    exit 1
-fi
+# Note: Commented out for testing
 
-if [ -d "/usr/local/go" ]; then
-    echo "Removing existing Go installation at /usr/local/go..."
-    sudo rm -rf /usr/local/go
-else
-    echo "No existing Go installation found at /usr/local/go."
-fi
-
-wget -P "$HOME/.local" "$go_dl_url"
-sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
-rm "$HOME/.local/$go_tar"
-
-export PATH=$PATH:/usr/local/go/bin
-export GOPATH=$(go env GOPATH)
-export PATH=$PATH:$GOPATH/bin
-go version
-echo "Adding Go paths to $HOME/.bashrc..."
-cat << 'EOF' >> "$HOME/.bashrc"
-
-# Go environment setup
-export PATH=$PATH:/usr/local/go/bin
-export GOPATH=$(go env GOPATH)
-export PATH=$PATH:$GOPATH/bin
-EOF
-
-go install mvdan.cc/gofumpt@latest
-go install golang.org/x/tools/gopls@latest
-go install github.com/nametake/golangci-lint-langserver@latest
-
-curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
-golangci-lint --version
+# if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
+#     echo "Error: go_dl_url and go_tar must be set."
+#     exit 1
+# fi
+#
+# if [ -d "/usr/local/go" ]; then
+#     echo "Removing existing Go installation at /usr/local/go..."
+#     sudo rm -rf /usr/local/go
+# else
+#     echo "No existing Go installation found at /usr/local/go."
+# fi
+#
+# wget -P "$HOME/.local" "$go_dl_url"
+# sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
+# rm "$HOME/.local/$go_tar"
+#
+# export PATH=$PATH:/usr/local/go/bin
+# export GOPATH=$(go env GOPATH)
+# export PATH=$PATH:$GOPATH/bin
+# go version
+# echo "Adding Go paths to $HOME/.bashrc..."
+# cat << 'EOF' >> "$HOME/.bashrc"
+#
+# # Go environment setup
+# export PATH=$PATH:/usr/local/go/bin
+# export GOPATH=$(go env GOPATH)
+# export PATH=$PATH:$GOPATH/bin
+# EOF
+#
+# go install mvdan.cc/gofumpt@latest
+# go install golang.org/x/tools/gopls@latest
+# go install github.com/nametake/golangci-lint-langserver@latest
+#
+# curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
+# golangci-lint --version
 
 #########
 # Discord
