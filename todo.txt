@@ -1,39 +1,51 @@
-# TODO: I am wondering if the move here is to actually make this part of the .config repo,
-# bring in the config repo, and have this function as an update script as well
-# This way it can all be done as one piece
-# The thing I wonder about is, it would probably be useful if my config repo could be used
-# in multiple types of systems, so maybe still keep it as a separate piece
-# I feel more strongly about using this as an upgrade script, though it introduces some
-# of the obnoxious variable edits, though we might need those in an upgrade script anyway
-# The other problem with making install/upgrade one thing is handling paths
-# Something you could do is have a short script to run in sudo to do apt upgrades, then
-# Another script for handling unmanaged/less managed software
+####
+TODO
+####
 
-# TODO: Get the rest of the old scripting
+ghostty
 
-# Questions:
-# nVidia drivers
-# How to handle file backups (both creating and importing from old system)
-# What Chron jobs to setup and how to manage?
-# rsync?
-# Audio
-# Disk management
-# Need a note at the end to manually pull Wireguard configs
-# Brave bookmarks (saving/importing)
-# Brave default pages (I think these just have to be manually done)
-# Screenshot program
-# File manager
-# X11
-# lightdm or some other thing for display
-# qbittorrent config
-# Steam/Games (Are STS and STP Steam or GOG or something)
-# Calculator
-# Redshift
-# Image backgrounds
-# I added HexChat for IRC and that's probably fine
-# How does i3 display management work?
-# Is it not possible to download a Paint clone on Linux?
-# It might be helpful to download a GUI package manager for .deb files
+- Dial in ghostty config more
+    - Should be able to get rid of GTK bar in i3
+- Go thorugh ghostty default hotkeys
+
+tmux
+
+- Do I need to clone in the power repo or can the plugin manager handle it?
+
+git
+
+- how do we get/store token?
+
+general
+
+- Perhaps bring this into the config repo
+- Perhaps make the script install and update, but that adds complexity
+- for updating, do we have a separate sudo script for pulling kernel updates? Unsure if that's only a Mint thing though
+- work through rest of old script
+- do we just save the desktop background in here?
+
+personal data handling
+- How to handle file backups (both creating and importing from old system)
+- What Chron jobs to setup and how to manage?
+- Do we add/configure rsync in here?
+- Brave bookmarks (saving/importing)
+- Steam/Games (Are STS and STP Steam or GOG or something)
+
+utilities
+
+- redshift
+- calculator
+- disk management?
+- pulseeffects
+- screenshot program
+- file manager
+- hexchat?
+- GIMP or Paint clone
+- GUI package manager (for handling .deb web downloads)
+
+nVidia drivers
+
+- How to install? Need to test
 
 ###############
 # Unused/Extras
@@ -53,9 +65,6 @@
 # - doxygen (I forget why I installed this)
 # - libmbedtls-dev
 # - zlib1g-dev
-# - libevent-dev
-# - ncurses-dev
-# - bison
 # - gh
 # - libc6
 # - libgcc1

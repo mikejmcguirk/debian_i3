@@ -39,9 +39,16 @@ go_tar=$(basename "$go_dl_url")
 go_lint_url="https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh"
 go_lint_dir="bin v1.64.7"
 
+tmux_url="https://github.com/tmux/tmux"
+tmux_branch="tmux-3.5a"
+
+ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
+
 # https://www.nerdfonts.com/font-downloads
 nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
 nerd_font_filename=$(basename "$nerd_font_url")
+
+discord_url="https://discord.com/api/download?platform=linux&format=deb"
 
 #############################################
 # Check that the script is being run properly
@@ -132,9 +139,14 @@ sudo apt install -y python3-neovim
 # At least for now, I'm going to avoid speculatively installing them
 # They can be checked with apt search linux-perf
 sudo apt install -y linux-perf
-sudo apt install -y libreoffice
+# NOTE: Commented out for testing
+# sudo apt install -y libreoffice
 sudo apt install -y pkg-config # For cargo updater
 sudo apt install -y libssl-dev # For cargo updater
+sudo apt install -y mesa-utils # Get OpenGL info
+sudo apt install -y bison # tmux build dep
+sudo apt install -y ncurses-dev # tmux build dep
+sudo apt install -y libevent-dev # tmux build dep
 
 sudo apt install -y xorg
 sudo apt install -y i3
@@ -179,6 +191,10 @@ sudo apt install -y brave-browser
 sudo apt install -y wezterm
 sudo apt install -y spotify-client
 
+sudo apt remove -y neovim # Hacky, but whatever
+sudo apt autoremove -y
+sudo apt autoclean -y
+
 ################
 # Install Neovim
 ################
@@ -211,7 +227,12 @@ EOF
 # Install Btop
 ##############
 
-btop_install_dir="$HOME/.local/bin/btop"
+btop_install_dir="/opt/btop"
+
+if [ ! -w "/opt" ]; then
+    echo "This script needs root privileges to install to /opt. Please run with sudo."
+    exit 1
+fi
 
 if [ -d "$btop_install_dir" ]; then
     echo "Removing existing Btop installation at $btop_install_dir..."
@@ -220,15 +241,14 @@ else
     echo "No existing Btop installation found at $btop_install_dir"
 fi
 
-#btop unpacks to a btop subfolder
-wget -P "$HOME/.local/bin" $btop_url
-tar xjvf "$HOME/.local/bin/$btop_file" -C "$HOME/.local/bin/"
+wget -P "/opt" "$btop_url"
+tar xjvf "/opt/$btop_file" -C "/opt/"
 bash "$btop_install_dir/install.sh"
-rm "$HOME/.local/bin/$btop_file"
+rm "/opt/$btop_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
-export PATH="$PATH:$HOME/.local/bin/btop/bin"
+export PATH="$PATH:/opt/btop/bin"
 EOF
 
 ################
@@ -345,6 +365,40 @@ go install github.com/nametake/golangci-lint-langserver@latest
 curl -sSfL $go_lint_url | sh -s -- -b $(go env GOPATH)/$go_lint_dir
 golangci-lint --version
 
+#########
+# Discord
+#########
+
+discord_dl_dir="$HOME/.local"
+[ ! -d "$discord_dl_dir" ] && mkdir "$discord_dl_dir"
+deb_file="$discord_dl_dir/discord_deb.deb"
+
+echo "Downloading Discord .deb from $discord_url..."
+curl -L -o "$deb_file" "$discord_url" || {
+    echo "Error: Download failed."
+}
+
+echo "Downloading Discord .deb from $discord_url..."
+if ! curl -L -o "$deb_file" "$discord_url"; then
+    echo "Unable to download Discord .deb, continuing..."
+else
+    file_type=$(file -b "$deb_file")
+    if [[ "$file_type" =~ "Debian binary package" ]]; then
+        echo "It's a deb file! Installing..."
+
+        if sudo apt install -y "$deb_file"; then
+            echo "Discord installed successfully"
+        else
+            echo "Unable to install Discord .deb, continuing..."
+        fi
+    else
+        echo "Downloaded file is not a .deb package (type: $file_type)."
+        echo "Removing and continuing..."
+    fi
+fi
+
+rm -f "$deb_file"
+
 ###############
 # Add Nerd Font
 ###############
@@ -372,29 +426,61 @@ git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
 
 # TODO: For pulling my programming projects, do I pull from github or my local backups?
 
+#########
+# Ghostty
+#########
+
+ghostty_file="$HOME/.local/bin/ghostty"
+curl -L -o "$ghostty_file" "$ghostty_url"
+chmod +x "$ghostty_file"
+
+######
+# Tmux
+######
+
+tmux_git_dir="$HOME/.local/tmux-get"
+[ ! -d "$tmux_git_dir" ] && mkdir "$tmux_git_dir"
+
+git clone $tmux_url "$tmux_git_dir"
+cd "$tmux_git_dir"
+
+git checkout "$tmux_branch"
+sh autogen.sh
+./configure && make
+
+cd "$HOME"
+rm -rf "$tmux_git_dir"
+
+tmux_plugins_dir="$HOME/.tmux/plugins"
+[ ! -d "$tmux_plugins_dir" ] && mkdir "$tmux_plugins_dir"
+tpm_dir="$tmux_plugins_dir/tpm"
+rm -rf "$tpm_dir"
+
+git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
+
 ################
 # Rust Ecosystem
 ################
 
+# NOTE: Commented out for testing
+
 # Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
-"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-"$HOME/.cargo/bin/cargo" install stylua
-"$HOME/.cargo/bin/cargo" install tokei
-"$HOME/.cargo/bin/cargo" install flamegraph
-"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-"$HOME/.cargo/bin/cargo" install cargo-update
+# "$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
+# "$HOME/.cargo/bin/cargo" install stylua
+# "$HOME/.cargo/bin/cargo" install tokei
+# "$HOME/.cargo/bin/cargo" install flamegraph
+# "$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+# "$HOME/.cargo/bin/cargo" install cargo-update
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
 # sudo update-initramfs -u
-
-# TODO: If still using lightdm, add this to config: allow-root=false
 
 echo "Install script complete"
 echo "Reboot (or at least resource .bashrc) to ensure all changes take effect"
