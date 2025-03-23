@@ -2,6 +2,8 @@ WIP
 
 For Debian 12
 
+Designed to produce an i3 system that initializes with startx
+
 When installing:
 
 - I personally don't use the graphical install
@@ -12,13 +14,13 @@ Login first as root. Do the following:
 ```bash
 apt update
 apt install sudo
-usermod -aG sudo admin_user
+usermod -aG sudo [your admin user from setup]
 reboot
 ```
 
-Then login as your admin user.
+Login as your admin user.
 
-Run this script with:
+Run this script from your home directory with:
 ```bash
 wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/install.sh
 bash install.sh

@@ -180,15 +180,11 @@ git config --global user.email "mike.j.mcguirk@gmail.com"
 sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
 
-curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
-
 sudo curl -sS $spotify_key | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg
 echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
 
 sudo apt update
 sudo apt install -y brave-browser
-sudo apt install -y wezterm
 sudo apt install -y spotify-client
 
 sudo apt remove -y neovim # Hacky, but whatever
@@ -229,22 +225,17 @@ EOF
 
 btop_install_dir="/opt/btop"
 
-if [ ! -w "/opt" ]; then
-    echo "This script needs root privileges to install to /opt. Please run with sudo."
-    exit 1
-fi
-
 if [ -d "$btop_install_dir" ]; then
     echo "Removing existing Btop installation at $btop_install_dir..."
-    rm -rf "$btop_install_dir"
+    sudo rm -rf "$btop_install_dir"
 else
     echo "No existing Btop installation found at $btop_install_dir"
 fi
 
-wget -P "/opt" "$btop_url"
-tar xjvf "/opt/$btop_file" -C "/opt/"
-bash "$btop_install_dir/install.sh"
-rm "/opt/$btop_file"
+sudo wget -P "/opt" "$btop_url"
+sudo tar xjvf "/opt/$btop_file" -C "/opt/"
+sudo bash "$btop_install_dir/install.sh"
+sudo rm "/opt/$btop_file"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
