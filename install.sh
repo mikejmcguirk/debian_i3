@@ -3,9 +3,9 @@
 set -e # quit on error
 cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 
-###################################################
-# Declare all variables up front for easier editing
-###################################################
+###################
+# Declare variables
+###################
 
 # https://www.spotify.com/de-en/download/linux/
 # Check directions for updated key
@@ -15,14 +15,17 @@ spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
 obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
 obsidian_file=$(basename "$obsidian_url")
 
+# https://github.com/neovim/neovim/releases
 # NOTE: Check the instructions as well as the tar URL in case they change
 nvim_url="https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz"
 nvim_tar=$(basename "$nvim_url")
-nvim_config="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
+nvim_config_repo="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
 
+# https://github.com/neovim/neovim/releases
 btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86_64-linux-musl.tbz"
 btop_file=$(basename "$btop_url")
 
+# https://github.com/neovim/neovim/releases
 lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
 lua_ls_file=$(basename "$lua_ls_url")
 
@@ -41,7 +44,10 @@ go_lint_dir="bin v1.64.7"
 
 tmux_url="https://github.com/tmux/tmux"
 tmux_branch="tmux-3.5a"
+tpm_repo="https://github.com/tmux-plugins/tpm"
+tmux_power_repo="https://github.com/wfxr/tmux-power"
 
+# https://github.com/neovim/neovim/releases
 ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
 
 # https://www.nerdfonts.com/font-downloads
@@ -51,6 +57,10 @@ nerd_font_filename=$(basename "$nerd_font_url")
 discord_url="https://discord.com/api/download?platform=linux&format=deb"
 
 dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
+
+# Rust URL
+# Check curl cmd as well
+rust_url=https://sh.rustup.rs
 
 #############################################
 # Check that the script is being run properly
@@ -78,16 +88,6 @@ if [[ "$choice" != "y" && "$choice" != "Y" ]]; then
     exit 0
 fi
 
-####################
-# Create Directories
-####################
-
-[ ! -d "$HOME/.local" ] && mkdir "$HOME/.local"
-[ ! -d "$HOME/.local/bin" ] && mkdir "$HOME/.local/bin"
-[ ! -d "$HOME/.config" ] && mkdir "$HOME/.config"
-[ ! -d "$HOME/.fonts" ] && mkdir "$HOME/.fonts"
-[ ! -d "$HOME/.ssh" ] && mkdir "$HOME/.ssh"
-
 ##################
 # System Hardening
 ##################
@@ -100,6 +100,7 @@ sudo ufw default allow outgoing # Also should be default
 sudo ufw logging on
 sudo ufw --force enable
 
+[ ! -d "$HOME/.ssh" ] && mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
 # FUTURE: There are settings that can be added as well to specify stronger cryptography
@@ -110,9 +111,18 @@ Host *
 EOF
 chmod 600 "$HOME/.ssh/config"
 
-##############################
-# Install apt managed software
-##############################
+################
+# **** NOTE ****
+################
+
+# Do not install, directly or as a dependency, xdg-desktop-portal-gtk
+# This causes ghostty to take 15+ seconds to load
+# Looking at the output when running ghostty in the terminal, GTK errors show
+# This rules out using flameshot for screenshots
+
+#################################
+# Updates, Cleanup, and Libraries
+#################################
 
 sudo apt update
 sudo apt upgrade -y
@@ -120,11 +130,59 @@ sudo apt autoremove -y
 sudo apt autoclean -y
 
 sudo apt install -y build-essential
-sudo apt install -y xclip # For copy/paste out of Neovim
-sudo apt install -y vlc
+sudo apt install -y bison # tmux build dep
+sudo apt install -y ncurses-dev # tmux build dep
+sudo apt install -y libevent-dev # tmux build dep
+sudo apt install -y pkg-config # For cargo updater
+sudo apt install -y libssl-dev # For cargo updater
+sudo apt install -y python3-neovim
+
+###########
+# Utilities
+###########
+
 sudo apt install -y curl
-sudo apt install -y qbittorrent
-sudo apt install -y hexchat
+sudo apt install -y xclip # For copy/paste out of Neovim
+sudo apt install -y fd-find
+sudo apt install -y fzf
+sudo apt install -y vim
+sudo apt install -y unzip
+sudo apt install -y qalculate-gtk
+sudo apt install -y mesa-utils # Get OpenGL info
+sudo apt install -y automake # tmux build dep
+sudo apt install -y autoconf # tmux build dep
+# NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
+# At least for now, I'm going to avoid speculatively installing them
+# They can be checked with apt search linux-perf
+sudo apt install -y linux-perf
+sudo apt install -y sqlite3
+sudo apt install -y gnome-disk-utility
+
+# TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
+
+###########
+# Dev Tools
+###########
+
+sudo apt install -y shellcheck
+sudo apt install -y llvm
+
+#####
+# Git
+#####
+
+sudo apt install -y git
+git config --global user.name "Mike J. McGuirk"
+git config --global user.email "mike.j.mcguirk@gmail.com"
+# Rebase can do goofy stuff
+git config --global pull.rebase false
+# FUTURE: This is dumb
+git config --global credential.helper store
+
+###########
+# Wireguard
+###########
+
 sudo apt install -y wireguard
 sudo apt install -y openresolv
 sudo apt install -y natpmpc
@@ -141,32 +199,27 @@ else
     exit 1
 fi
 
-sudo apt install -y shellcheck
-sudo apt install -y fd-find
-sudo apt install -y fzf
-sudo apt install -y llvm
-sudo apt install -y sqlite3
-sudo apt install -y vim
-sudo apt install -y unzip
-sudo apt install -y python3-neovim
-# NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
-# At least for now, I'm going to avoid speculatively installing them
-# They can be checked with apt search linux-perf
-sudo apt install -y linux-perf
+##################
+# General Programs
+##################
+
+sudo apt install -y vlc
+sudo apt install -y qbittorrent
+sudo apt install -y hexchat
 sudo apt install -y libreoffice
-sudo apt install -y pkg-config # For cargo updater
-sudo apt install -y libssl-dev # For cargo updater
-sudo apt install -y mesa-utils # Get OpenGL info
-sudo apt install -y bison # tmux build dep
-sudo apt install -y ncurses-dev # tmux build dep
-sudo apt install -y libevent-dev # tmux build dep
-sudo apt install -y automake # tmux build dep
-sudo apt install -y autoconf # tmux build dep
+# FUTURE: Should learn GIMP 3
+sudo apt install -y pinta
+
+##########
+# Redshift
+##########
 
 sudo apt install -y redshift-gtk
 sudo systemctl disable geoclue
 
-redshift_conf="$HOME/.config/redshift.conf"
+redshift_conf_dir="$HOME/.config"
+[ ! -d "$redshift_conf_dir" ] && mkdir -p "$redshift_conf_dir"
+redshift_conf="$redshift_conf_dir/redshift.conf"
 
 echo "Checking/creating redshift conf dir"
 if ! mkdir -p "$(dirname "$redshift_conf")"; then
@@ -196,14 +249,14 @@ else
     exit 1
 fi
 
+#########
+# Display
+#########
 
 sudo apt install -y xorg
 sudo apt install -y i3
 sudo apt install -y feh
 sudo apt install -y picom
-sudo apt install -y gnome-disk-utility
-# FUTURE: Should learn GIMP 3
-sudo apt install -y pinta
 
 echo "Creating ~/.xinitrc to start i3 with startx..."
 cat << 'EOF' > "$HOME/.xinitrc"
@@ -214,8 +267,6 @@ exec i3
 EOF
 chmod +x "$HOME/.xinitrc"
 
-sudo apt install -y qalculate-gtk
-
 # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
 # if [ -n "$(lspci | grep -i nvidia)" ]; then
 #     echo "Detected NVIDIA GPU, installing drivers..."
@@ -225,15 +276,9 @@ sudo apt install -y qalculate-gtk
 #     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
 # fi
 
-# TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
-
-sudo apt install -y git
-git config --global user.name "Mike J. McGuirk"
-git config --global user.email "mike.j.mcguirk@gmail.com"
-# Rebase can do goofy stuff
-git config --global pull.rebase false
-# FUTURE: This is dumb
-git config --global credential.helper store
+##################
+# Custom Apt Repos
+##################
 
 sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
@@ -247,15 +292,8 @@ sudo apt install -y spotify-client
 
 username="$USER"
 spotify_prefs_dir="$HOME/.config/spotify/Users/${username}-user"
+[ ! -d "$spotify_prefs_dir" ] && mkdir -p "$spotify_prefs_dir"
 prefs_file="$spotify_prefs_dir/prefs"
-
-# In theory this is a dot file, but since it needs to be tied to the username better to
-# create it in the install script
-echo "Creating Spotify preferences directory if it doesn't exist..."
-if ! mkdir -p "$spotify_prefs_dir"; then
-    echo "Error: Failed to create directory $spotify_prefs_dir. Check permissions."
-    exit 1
-fi
 
 if [ -f "$prefs_file" ]; then
     if grep -q "ui.track_notifications_enabled=false" "$prefs_file"; then
@@ -275,7 +313,11 @@ fi
 
 echo "Spotify preferences updated successfully."
 
-sudo apt remove -y neovim # Hacky, but whatever
+###########
+# Dumb hack
+###########
+
+sudo apt remove -y neovim
 sudo apt autoremove -y
 sudo apt autoclean -y
 
@@ -283,24 +325,28 @@ sudo apt autoclean -y
 # Install Neovim
 ################
 
-if [ -z "$nvim_url" ] || [ -z "$nvim_tar" ] || [ -z "$nvim_config" ] ; then
-    echo "Error: nvim_url, nvim_tar, and nvim_config must be set"
+if [ -z "$nvim_url" ] || [ -z "$nvim_tar" ] || [ -z "$nvim_config_repo" ] ; then
+    echo "Error: nvim_url, nvim_tar, and nvim_config_repo must be set"
     exit 1
 fi
 
-[ ! -d "$HOME/.config/nvim" ] && mkdir "$HOME/.config/nvim"
-git clone $nvim_config "$HOME/.config/nvim"
+nvim_conf_dir="$HOME/.config/nvim"
+[ ! -d "$nvim_conf_dir" ] && mkdir -p "$nvim_conf_dir"
+git clone $nvim_config_repo "$nvim_conf_dir"
 
-if [ -d "/opt/nvim" ]; then
-    echo "Removing existing Nvim installation at /opt/nvim..."
-    sudo rm -rf /opt/nvim
+nvim_install_dir="/opt/nvim"
+if [ -d "$nvim_install_dir" ]; then
+    echo "Removing existing Nvim installation at $nvim_install_dir..."
+    sudo rm -rf $nvim_install_dir
 else
-    echo "No existing Nvim installation found at /opt/nvim"
+    echo "No existing Nvim installation found at $nvim_install_dir"
 fi
 
-curl -LO --output-dir "$HOME/.local" "$nvim_url"
-sudo tar -C /opt -xzf "$HOME/.local/$nvim_tar"
-rm "$HOME/.local/$nvim_tar"
+nvim_tar_dir="$HOME/.local"
+[ ! -d "$nvim_tar_dir" ] && mkdir -p "$nvim_tar_dir"
+curl -LO --output-dir "$nvim_tar_dir" "$nvim_url"
+sudo tar -C /opt -xzf "$nvim_tar_dir/$nvim_tar"
+rm "$nvim_tar_dir/$nvim_tar"
 
 cat << 'EOF' >> "$HOME/.bashrc"
 
@@ -310,6 +356,11 @@ EOF
 ##############
 # Install Btop
 ##############
+
+if [ -z "$btop_url" ] || [ -z "$btop_file" ] ; then
+    echo "Error: btop_url and btop_file must be set"
+    exit 1
+fi
 
 btop_install_dir="/opt/btop"
 
@@ -334,6 +385,11 @@ EOF
 # Install Lua LS
 ################
 
+if [ -z "$lua_ls_url" ] || [ -z "$lua_ls_file" ] ; then
+    echo "Error: lua_ls_url and lua_ls_file must be set"
+    exit 1
+fi
+
 lua_ls_install_dir="$HOME/.local/bin/lua_ls"
 
 if [ -d "$lua_ls_install_dir" ]; then
@@ -357,9 +413,15 @@ EOF
 # Obsidian
 ##########
 
-curl -LO --output-dir "$HOME/.local" "$obsidian_url"
-sudo apt install -y "$HOME/.local/$obsidian_file"
-rm "$HOME/.local/$obsidian_file"
+if [ -z "$obsidian_url" ] || [ -z "$obsidian_file" ] ; then
+    echo "Error: obsidian_url and obsidian_file must be set"
+    exit 1
+fi
+
+obsidian_deb_dir="$HOME/.local"
+curl -LO --output-dir "$obsidian_deb_dir" "$obsidian_url"
+sudo apt install -y "$obsidian_deb_dir/$obsidian_file"
+rm "$obsidian_deb_dir/$obsidian_file"
 
 ##################
 # Python Ecosystem
@@ -384,6 +446,11 @@ pipx install python-lsp-server[all]
 ######################
 # Javascript Ecosystem
 ######################
+
+if [ -z "$nvm_install_url" ] ; then
+    echo "nvim_install_url must be set"
+    exit 1
+fi
 
 wget -qO- $nvm_install_url | bash
 
@@ -410,28 +477,30 @@ if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
     exit 1
 fi
 
-if [ -d "/usr/local/go" ]; then
-    echo "Removing existing Go installation at /usr/local/go..."
-    sudo rm -rf /usr/local/go
+go_install_dir="/usr/local/go"
+if [ -d "$go_install_dir" ]; then
+    echo "Removing existing Go installation at $go_install_dir..."
+    sudo rm -rf $go_install_dir
 else
-    echo "No existing Go installation found at /usr/local/go."
+    echo "No existing Go installation found at $go_install_dir"
 fi
 
-wget -P "$HOME/.local" "$go_dl_url"
-sudo tar -C /usr/local -xzf "$HOME/.local/$go_tar"
-rm "$HOME/.local/$go_tar"
+go_dl_dir="$HOME/.local"
+wget -P "$go_dl_dir" "$go_dl_url"
+sudo tar -C /usr/local -xzf "$go_dl_dir/$go_tar"
+rm "$go_dl_dir/$go_tar"
 
-export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$go_install_dir/bin
 export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$GOPATH/bin
 go version
 echo "Adding Go paths to $HOME/.bashrc..."
-cat << 'EOF' >> "$HOME/.bashrc"
+cat << EOF >> "$HOME/.bashrc"
 
 # Go environment setup
-export PATH=$PATH:/usr/local/go/bin
-export GOPATH=$(go env GOPATH)
-export PATH=$PATH:$GOPATH/bin
+export PATH=\$PATH:$go_install_dir/bin
+export GOPATH=\$(go env GOPATH)
+export PATH=\$PATH:\$GOPATH/bin
 EOF
 
 go install mvdan.cc/gofumpt@latest
@@ -446,7 +515,7 @@ golangci-lint --version
 #########
 
 discord_dl_dir="$HOME/.local"
-[ ! -d "$discord_dl_dir" ] && mkdir "$discord_dl_dir"
+[ ! -d "$discord_dl_dir" ] && mkdir -p "$discord_dl_dir"
 deb_file="$discord_dl_dir/discord_deb.deb"
 
 echo "Downloading Discord .deb from $discord_url..."
@@ -479,9 +548,12 @@ rm -f "$deb_file"
 # Add Nerd Font
 ###############
 
-wget -P "$HOME/.fonts" $nerd_font_url
-unzip -o "$HOME/.fonts/$nerd_font_filename" -d ~/.fonts
-rm "$HOME/.fonts/$nerd_font_filename"
+fonts_dir="$HOME/.fonts"
+[ ! -d "$fonts_dir" ] && mkdir -p "$fonts_dir"
+
+wget -P "$fonts_dir" $nerd_font_url
+unzip -o "$fonts_dir/$nerd_font_filename" -d fonts_dir
+rm "$fonts_dir/$nerd_font_filename"
 
 ##############
 # Get Dotfiles
@@ -496,14 +568,17 @@ fi
 EOF
 fi
 
-git clone --bare $dotfiles_url "$HOME/.cfg"
-git --git-dir="$HOME/.cfg" --work-tree="$HOME" checkout main
+dotfile_dir="$HOME/.cfg"
+[ ! -d "$dotfile_dir" ] && mkdir -p "$dotfile_dir"
+git clone --bare $dotfiles_url "$dotfile_dir"
+git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main
 
 #########
 # Ghostty
 #########
 
-ghostty_file="$HOME/.local/bin/ghostty"
+ghostty_dir="$HOME/.local/bin"
+ghostty_file="$ghostty_dir/ghostty"
 curl -L -o "$ghostty_file" "$ghostty_url"
 chmod +x "$ghostty_file"
 
@@ -524,18 +599,19 @@ sh autogen.sh
 echo "tmux build complete"
 cd "$HOME"
 
-cat << 'EOF' >> "$HOME/.bashrc"
+cat << EOF >> "$HOME/.bashrc"
 
-export PATH="$PATH:/$HOME/.local/bin/tmux"
+export PATH="\$PATH:/$tmux_git_dir"
 EOF
 
 # tmux list-keys to see where the binding looks to run the script
 tmux_plugins_dir="$HOME/.config/tmux/plugins"
+[ ! -d "$tmux_plugins_dir" ] && mkdir -p "$tmux_plugins_dir"
 tpm_dir="$tmux_plugins_dir/tpm"
 power_dir="$tmux_plugins_dir/power"
 
-git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
-git clone https://github.com/wfxr/tmux-power "$power_dir"
+git clone $tpm_repo "$tpm_dir"
+git clone $tmux_power_repo "$power_dir"
 
 ################
 # Rust Ecosystem
@@ -544,16 +620,17 @@ git clone https://github.com/wfxr/tmux-power "$power_dir"
 # Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -sSf $rust_url | sh
 
 # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
 # rustup component add rust-analyzer
-"$HOME/.cargo/bin/cargo" install --features lsp --locked taplo-cli
-"$HOME/.cargo/bin/cargo" install stylua
-"$HOME/.cargo/bin/cargo" install tokei
-"$HOME/.cargo/bin/cargo" install flamegraph
-"$HOME/.cargo/bin/cargo" install --features 'pcre2' ripgrep # For Perl Compatible Regex
-"$HOME/.cargo/bin/cargo" install cargo-update
+cargo_bin="$HOME/.cargo/bin/cargo"
+"$cargo_bin" install --features lsp --locked taplo-cli
+"$cargo_bin" install stylua
+"$cargo_bin" install tokei
+"$cargo_bin" install flamegraph
+"$cargo_bin" install --features 'pcre2' ripgrep # For Perl Compatible Regex
+"$cargo_bin" install cargo-update
 
 #########
 # Wrap Up
