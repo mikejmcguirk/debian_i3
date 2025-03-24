@@ -42,6 +42,7 @@ Post run steps:
 - Setup backup jobs
 - Adjust mouse speed/acceleration
 - Verify Redshift is working
+- Set qalculate to dark mode
 
 (The config repo contains an i3 config. Should not need to generate a new one)
 

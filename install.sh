@@ -100,8 +100,6 @@ sudo ufw default allow outgoing # Also should be default
 sudo ufw logging on
 sudo ufw --force enable
 
-sudo chmod 600 /etc/shadow
-
 chmod 700 "$HOME/.ssh"
 
 # FUTURE: There are settings that can be added as well to specify stronger cryptography
@@ -126,6 +124,7 @@ sudo apt install -y xclip # For copy/paste out of Neovim
 sudo apt install -y vlc
 sudo apt install -y curl
 sudo apt install -y qbittorrent
+sudo apt install -y hexchat
 sudo apt install -y wireguard
 sudo apt install -y openresolv
 sudo apt install -y natpmpc
@@ -200,6 +199,11 @@ fi
 
 sudo apt install -y xorg
 sudo apt install -y i3
+sudo apt install -y feh
+sudo apt install -y picom
+sudo apt install -y gnome-disk-utility
+# FUTURE: Should learn GIMP 3
+sudo apt install -y pinta
 
 echo "Creating ~/.xinitrc to start i3 with startx..."
 cat << 'EOF' > "$HOME/.xinitrc"
@@ -209,6 +213,8 @@ cat << 'EOF' > "$HOME/.xinitrc"
 exec i3
 EOF
 chmod +x "$HOME/.xinitrc"
+
+sudo apt install -y qalculate-gtk
 
 # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
 # if [ -n "$(lspci | grep -i nvidia)" ]; then
@@ -224,7 +230,8 @@ chmod +x "$HOME/.xinitrc"
 sudo apt install -y git
 git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
-git config --global pull.rebase true
+# Rebase can do goofy stuff
+git config --global pull.rebase false
 # FUTURE: This is dumb
 git config --global credential.helper store
 
