@@ -164,6 +164,40 @@ sudo apt install -y libevent-dev # tmux build dep
 sudo apt install -y automake # tmux build dep
 sudo apt install -y autoconf # tmux build dep
 
+sudo apt install -y redshift-gtk
+sudo systemctl disable geoclue
+
+redshift_conf="$HOME/.config/redshift.conf"
+
+echo "Checking/creating redshift conf dir"
+if ! mkdir -p "$(dirname "$redshift_conf")"; then
+    echo "Unable to create directory $(dirname "$redshift_conf"). Check permissions"
+    exit 1
+fi
+
+# Write the Redshift configuration file using cat with a heredoc
+echo "Writing Redshift configuration to $redshift_conf..."
+if cat << 'EOF' > "$redshift_conf"
+[redshift]
+#temp-day=6500
+#temp-night=4000
+temp-day=6500
+temp-night=6500
+adjustment-method=randr
+location-provider=manual
+
+[manual]
+lat=00.0000
+lon=00.0000
+EOF
+then
+    echo "Successfully wrote to $redshift_conf."
+else
+    echo "Error: Failed to write to $redshift_conf."
+    exit 1
+fi
+
+
 sudo apt install -y xorg
 sudo apt install -y i3
 
@@ -190,8 +224,9 @@ chmod +x "$HOME/.xinitrc"
 sudo apt install -y git
 git config --global user.name "Mike J. McGuirk"
 git config --global user.email "mike.j.mcguirk@gmail.com"
-# TODO: sudo apt install git-credential-manager # TODO: I think this is the move
-# But need to actually get into i3 so I can do testing before working on this
+git config --global pull.rebase true
+# FUTURE: This is dumb
+git config --global credential.helper store
 
 sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list

@@ -26,16 +26,18 @@ wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/in
 bash install.sh
 ```
 
+Reboot as directed
+
 <!--Save the update script. Run that with sudo bash as needed-->
 
 Post run steps:
 
 - Enter Neovim to make its packages install
 - Enter tmux, use prefix-I to download plugins
+- Create a Github token and use it to push
 - Pull in Wireguard configs
 - Setup qbittorrent in GUI
-- Edit GUIT Spotify settings
-- Create Wireguard configs
+- Edit GUI Spotify settings
 - Configure Brave default pages, add bookmarks, and disable ctrl+w/ctrl+W keys
 - Setup backup jobs
 - Adjust mouse speed/acceleration
