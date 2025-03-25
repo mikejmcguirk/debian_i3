@@ -776,10 +776,13 @@ if $fresh_install || $rustup_update ; then
     curl --proto '=https' --tlsv1.2 -sSf $rustup_url | sh
 fi
 
-cargo_bin="$HOME/.cargo/bin/cargo"
+rust_bin_dir="$HOME/.cargo/bin"
+rustup_bin="$rust_bin_dir/rustup"
+cargo_bin="$rust_bin_dir/cargo"
+
 if $fresh_install ; then
     #I don't know why but rust-analyzer doesn't work unless you do this
-    rustup component add rust-analyzer
+    "$rustup_bin" component add rust-analyzer
     "$cargo_bin" install --features lsp --locked taplo-cli
     "$cargo_bin" install stylua
     "$cargo_bin" install tokei
