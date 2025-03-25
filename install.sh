@@ -191,10 +191,7 @@ if $fresh_install; then
 fi
 
 if $fresh_install; then
-    sudo cat << 'EOF' >> "/etc/sysctl.conf"
-
-kernel.perf_event_paranoid = -1
-EOF
+    echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 fi
 
 ###########
