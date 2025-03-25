@@ -689,6 +689,7 @@ if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     fi
 
     ghostty_dir="$HOME/.local/bin"
+    [ ! -d "$ghostty_dir" ] && mkdir -p "$ghostty_dir"
     ghostty_file="$ghostty_dir/ghostty"
 
     if [ -f "$ghostty_file" ]; then
