@@ -191,7 +191,7 @@ if $fresh_install; then
 fi
 
 if $fresh_install; then
-    cat << 'EOF' >> "/etc/sysctl.conf"
+    sudo cat << 'EOF' >> "/etc/sysctl.conf"
 
 kernel.perf_event_paranoid = -1
 EOF
@@ -302,6 +302,7 @@ fi
 # if $fresh_install; then
 # sudo apt install -y xorg
 # sudo apt install -y i3
+# sudo apt install -y i3-wm
 # sudo apt install -y feh
 # sudo apt install -y picom
 # sudo apt install -y dbus
