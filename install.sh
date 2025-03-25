@@ -77,7 +77,7 @@ dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
 # Rust URL
 # Check curl cmd as well
 rustup_update=false
-rustup_url=https://sh.rustup.rs
+rustup_url="https://sh.rustup.rs"
 
 #############################################
 # Check that the script is being run properly
@@ -250,6 +250,9 @@ if $fresh_install; then
     sudo apt install -y libreoffice
     # FUTURE: Should learn GIMP 3
     # sudo apt install -y pinta
+
+    # TODO: Try this
+    # https://www.pinta-project.com/howto/installing-pinta
 fi
 
 ##########
