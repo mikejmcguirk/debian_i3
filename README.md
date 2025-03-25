@@ -30,9 +30,11 @@ Reboot as directed
 
 <!--Save the update script. Run that with sudo bash as needed-->
 
-Post run steps:
+Post Install Steps/Checks:
 
-- Enter Neovim to make its packages install
+- Neovim
+  - Open it. Plugins should automatically install
+  - No lua errors should appear, which could indicate the wrong version is in the path
 - Enter tmux, use prefix-I to download plugins
 - Create a Github token and use it to push
 - Pull in Wireguard configs
@@ -43,6 +45,11 @@ Post run steps:
 - Adjust mouse speed/acceleration
 - Verify Redshift is working
 - Set qalculate to dark mode
+- Rust
+  - Open a project and make sure rust-analyzer works
+  - Make sure cargo flamegraph --release works
+- Open a toml file and make sure taplo works
+- Open brave-browser in a terminal and verify no dbus display errors
 
 (The config repo contains an i3 config. Should not need to generate a new one)
 

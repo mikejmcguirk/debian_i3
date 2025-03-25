@@ -169,6 +169,8 @@ fi
 # Utilities
 ###########
 
+# TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
+
 if $fresh_install; then
     sudo apt install -y curl
     sudo apt install -y xclip # For copy/paste out of Neovim
@@ -180,13 +182,19 @@ if $fresh_install; then
     sudo apt install -y mesa-utils # Get OpenGL info
     sudo apt install -y automake # tmux build dep
     sudo apt install -y autoconf # tmux build dep
+    sudo apt install -y sqlite3
+    sudo apt install -y gnome-disk-utility
     # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
     sudo apt install -y linux-perf
-    sudo apt install -y sqlite3
-    sudo apt install -y gnome-disk-utility
-    # TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
+fi
+
+if $fresh_install; then
+    cat << 'EOF' >> "/etc/sysctl.conf"
+
+kernel.perf_event_paranoid = -1
+EOF
 fi
 
 ###########
@@ -291,30 +299,25 @@ fi
 # Display
 #########
 
-if $fresh_install; then
-    sudo apt install -y xorg
-    sudo apt install -y i3
-    sudo apt install -y feh
-    sudo apt install -y picom
+# if $fresh_install; then
+# sudo apt install -y xorg
+# sudo apt install -y i3
+# sudo apt install -y feh
+# sudo apt install -y picom
+# sudo apt install -y dbus
+# sudo apt install -y dbus-x11
+# sudo apt install -y seahorse
+# sudo apt install -y upower
 
-    echo "Creating ~/.xinitrc to start i3 with startx..."
-    cat << 'EOF' > "$HOME/.xinitrc"
-#!/bin/sh
-# Optional: Add custom startup commands here (e.g., set display settings)
-# xrdb -merge ~/.Xresources  # Uncomment if you use Xresources for config
-exec i3
-EOF
-    chmod +x "$HOME/.xinitrc"
-
-    # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
-    # if [ -n "$(lspci | grep -i nvidia)" ]; then
-    #     echo "Detected NVIDIA GPU, installing drivers..."
-    #     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
-    #     sudo nvidia-xconfig
-    # else
-    #     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
-    # fi
-fi
+# TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
+# if [ -n "$(lspci | grep -i nvidia)" ]; then
+#     echo "Detected NVIDIA GPU, installing drivers..."
+#     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
+#     sudo nvidia-xconfig
+# else
+#     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
+# fi
+# fi
 
 ##################
 # Custom Apt Repos
@@ -774,8 +777,8 @@ fi
 
 cargo_bin="$HOME/.cargo/bin/cargo"
 if $fresh_install ; then
-    # NOTE: My old script manually added rust-analyzer. Unsure why, but keeping the cmd here
-    # rustup component add rust-analyzer
+    #I don't know why but rust-analyzer doesn't work unless you do this
+    rustup component add rust-analyzer
     "$cargo_bin" install --features lsp --locked taplo-cli
     "$cargo_bin" install stylua
     "$cargo_bin" install tokei
