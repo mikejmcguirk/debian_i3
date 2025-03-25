@@ -61,6 +61,7 @@ tpm_repo="https://github.com/tmux-plugins/tpm"
 tmux_power_repo="https://github.com/wfxr/tmux-power"
 
 # https://github.com/neovim/neovim/releases
+ghostty_update=false
 ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
 
 # https://www.nerdfonts.com/font-downloads
@@ -613,7 +614,6 @@ if $fresh_install || $discord_update; then
         echo "Error: Download failed."
     }
 
-    echo "Downloading Discord .deb from $discord_url..."
     if ! curl -L -o "$deb_file" "$discord_url"; then
         echo "Unable to download Discord .deb, continuing..."
     else
@@ -649,7 +649,7 @@ if $fresh_install || $nerd_font_update; then
     fi
 
     wget -P "$fonts_dir" $nerd_font_url
-    unzip -o "$fonts_dir/$nerd_font_filename" -d fonts_dir
+    unzip -o "$fonts_dir/$nerd_font_filename" -d "$fonts_dir"
     rm "$fonts_dir/$nerd_font_filename"
 fi
 
@@ -675,7 +675,7 @@ EOF
     dotfile_dir="$HOME/.cfg"
     [ ! -d "$dotfile_dir" ] && mkdir -p "$dotfile_dir"
     git clone --bare $dotfiles_url "$dotfile_dir"
-    git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main
+    git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main --force
 fi
 
 #########
@@ -793,10 +793,10 @@ fi
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
 # sudo update-initramfs -u
 
-what_happend="Update"
+what_happened="Update"
 if $fresh_install ; then
-    what_happend "Install"
+    what_happend="Install"
 fi
-echo "$what_happend script complete"
+echo "$what_happened script complete"
 
-echo "Reboot (or at least resource .bashrc) to ensure all changes take effect"
+echo "Reboot (or at least re-source .bashrc) to ensure all changes take effect"
