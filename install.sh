@@ -249,7 +249,7 @@ if $fresh_install; then
     sudo apt install -y hexchat
     sudo apt install -y libreoffice
     # FUTURE: Should learn GIMP 3
-    sudo apt install -y pinta
+    # sudo apt install -y pinta
 fi
 
 ##########
