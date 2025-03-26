@@ -116,7 +116,7 @@ fi
 ##################
 
 if $fresh_install; then
-    sudo passwd -l root # disable root login with a password. Reverse with passwd -u root
+    # sudo passwd -l root # disable root login with a password. Reverse with passwd -u root
 
     sudo apt install -y ufw
     sudo ufw default deny incoming # Should be default, but let's be sure
