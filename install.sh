@@ -320,19 +320,19 @@ if $fresh_install; then
     sudo apt install -y upower # Brave uses this to check laptop power
     # Brave complains/has dbus issues if it cannot see the policykit user
     # Reinstalling this worked, but maybe it has to be done with sudo outside of the script
-    sudo apt install policykit-1
+    sudo apt install -y policykit-1
     # This also worked for resolving an accessibility error in brave after re-installation
     # Maybe needs to be run as sudo
-    sudo apt install at-spi2-core # sudo run?
+    sudo apt install -y at-spi2-core # sudo run?
 
     # Keyring Management
-    sudo apt install libpam-gnome-keyring # This should already be installed but let's be safe
+    sudo apt install -y libpam-gnome-keyring # This should already be installed but let's be safe
     # Unlock gnome keyring at login so you aren't prompted when opening Brave from the
     # default xinitrc session
-    echo "auth       optional   pam_gnome_keyring.so" | sudo tee /etc/pam.d/login
-    echo "session    optional   pam_gnome_keyring.so auto_start" | sudo tee /etc/pam.d/login
-    echo "session    optional   pam_lastlog.so" | sudo tee /etc/pam.d/login
-    echo "session    optional   pam_motd.so" | sudo tee /etc/pam.d/login
+    # echo "auth       optional   pam_gnome_keyring.so" | sudo tee /etc/pam.d/login
+    # echo "session    optional   pam_gnome_keyring.so auto_start" | sudo tee /etc/pam.d/login
+    # echo "session    optional   pam_lastlog.so" | sudo tee /etc/pam.d/login
+    # echo "session    optional   pam_motd.so" | sudo tee /etc/pam.d/login
 
     # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
     # if [ -n "$(lspci | grep -i nvidia)" ]; then
@@ -607,7 +607,8 @@ if $fresh_install || $go_update ; then
     rm "$go_dl_dir/$go_tar"
 fi
 
-export PATH=$PATH:$go_install_dir/bin
+go_install_bin=$go_install_dir/bin
+export PATH=$PATH:$go_install_bin
 export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$GOPATH/bin
 
@@ -616,7 +617,7 @@ if $fresh_install; then
     cat << EOF >> "$HOME/.bashrc"
 
 # Go environment setup
-export PATH=\$PATH:$go_install_dir/bin
+export PATH=\$PATH:$go_install_bin
 export GOPATH=\$(go env GOPATH)
 export PATH=\$PATH:\$GOPATH/bin
 EOF
