@@ -316,7 +316,7 @@ if $fresh_install; then
     sudo apt install -y dbus-x11
     sudo apt install -y gnome-keyring # Prevent Brave from trying to use Kwallet
     sudo apt install -y libsecret-tools # Prevent Brave from trying to use Kwallet
-    sudo apt install -y libsecret-1- # Prevent Brave from trying to use Kwallet
+    sudo apt install -y libsecret-1-0 # Prevent Brave from trying to use Kwallet
     sudo apt install -y upower # Brave uses this to check laptop power
     # Brave complains/has dbus issues if it cannot see the policykit user
     # Reinstalling this worked, but maybe it has to be done with sudo outside of the script
