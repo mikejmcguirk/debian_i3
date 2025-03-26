@@ -32,6 +32,7 @@ Reboot as directed
 
 Post Install Steps/Checks:
 
+- ``sudo apt install --reinstall policykit-1``
 - Neovim
   - Open it. Plugins should automatically install
   - No lua errors should appear, which could indicate the wrong version is in the path

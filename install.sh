@@ -295,30 +295,66 @@ EOF
     fi
 fi
 
-#########
-# Display
-#########
+################
+# Window Manager
+################
 
-# if $fresh_install; then
-# sudo apt install -y xorg
-# sudo apt install -y i3
-# sudo apt install -y i3-wm
-# sudo apt install -y feh
-# sudo apt install -y picom
-# sudo apt install -y dbus
-# sudo apt install -y dbus-x11
-# sudo apt install -y seahorse
-# sudo apt install -y upower
+if $fresh_install; then
+    # Xserver
+    sudo apt install -y xorg
 
-# TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
-# if [ -n "$(lspci | grep -i nvidia)" ]; then
-#     echo "Detected NVIDIA GPU, installing drivers..."
-#     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
-#     sudo nvidia-xconfig
-# else
-#     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
-# fi
-# fi
+    #wm
+    sudo apt install -y i3
+    sudo apt install -y i3-wm
+
+    # Wallpaper/compositing
+    sudo apt install -y feh
+    sudo apt install -y picom
+
+    # Backend
+    sudo apt install -y dbus
+    sudo apt install -y dbus-x11
+    sudo apt install -y gnome-keyring-daemon # Prevent Brave from trying to use Kwallet
+    sudo apt install -y libsecret-tools # Prevent Brave from trying to use Kwallet
+    sudo apt install -y libsecret-1- # Prevent Brave from trying to use Kwallet
+    sudo apt install -y upower # Brave uses this to check laptop power
+    # Brave complains/has dbus issues if it cannot see the policykit user
+    # Reinstalling this worked, but maybe it has to be done with sudo outside of the script
+    sudo apt install policykit-1
+    # This also worked for resolving an accessibility error in brave after re-installation
+    # Maybe needs to be run as sudo
+    sudo apt install at-spi2-core # sudo run?
+
+    # Keyring Management
+    sudo apt install libpam-gnome-keyring # This should already be installed but let's be safe
+    # Unlock gnome keyring at login so you aren't prompted when opening Brave from the
+    # default xinitrc session
+    echo "auth       optional   pam_gnome_keyring.so" | sudo tee /etc/pam.d/login
+    echo "session    optional   pam_gnome_keyring.so auto_start" | sudo tee /etc/pam.d/login
+    echo "session    optional   pam_lastlog.so" | sudo tee /etc/pam.d/login
+    echo "session    optional   pam_motd.so" | sudo tee /etc/pam.d/login
+
+    # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
+    # if [ -n "$(lspci | grep -i nvidia)" ]; then
+    #     echo "Detected NVIDIA GPU, installing drivers..."
+    #     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
+    #     sudo nvidia-xconfig
+    # else
+    #     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
+    # fi
+fi
+
+# Startup Options:
+
+# startx i3:
+# - brave throws dbus errors like crazy
+
+# i3 + lightdm:
+# - user paths are not imported
+
+# i3 + default session script
+# - brave keyring error
+# - other brave SSL errors
 
 ##################
 # Custom Apt Repos
