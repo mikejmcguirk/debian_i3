@@ -314,7 +314,7 @@ if $fresh_install; then
     # Backend
     sudo apt install -y dbus
     sudo apt install -y dbus-x11
-    sudo apt install -y gnome-keyring-daemon # Prevent Brave from trying to use Kwallet
+    sudo apt install -y gnome-keyring # Prevent Brave from trying to use Kwallet
     sudo apt install -y libsecret-tools # Prevent Brave from trying to use Kwallet
     sudo apt install -y libsecret-1- # Prevent Brave from trying to use Kwallet
     sudo apt install -y upower # Brave uses this to check laptop power
