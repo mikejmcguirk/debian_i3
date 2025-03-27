@@ -299,6 +299,8 @@ fi
 # Window Manager
 ################
 
+# More keyring debugging to do
+
 if $fresh_install; then
     # Xserver
     sudo apt install -y xorg
@@ -337,7 +339,6 @@ fi
 
 # Startup Options:
 
-# startx i3:
 # - brave throws dbus errors like crazy
 
 # i3 + lightdm:

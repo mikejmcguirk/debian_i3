@@ -32,16 +32,26 @@ Reboot as directed
 
 Post Install Steps/Checks:
 
-- ``sudo apt install --reinstall policykit-1``
-- Neovim
-  - Open it. Plugins should automatically install
-  - No lua errors should appear, which could indicate the wrong version is in the path
+- Nvim
+  - Run ``which nvim`` to verify the right path is being seen
+  - Run nvim to pull in plugins
+  - Open a config file to verify lua_ls works
 - Enter tmux, use prefix-I to download plugins
 - Create a Github token and use it to push
 - Pull in Wireguard configs
 - Setup qbittorrent in GUI
 - Edit GUI Spotify settings
 - Configure Brave default pages, add bookmarks, and disable ctrl+w/ctrl+W keys
+- Brave
+  - Configure default pages
+  - Add bookmarks
+  - Disable ctrl+w/ctrl+W keys (might need Shortkeys)
+  - Extensions:
+    - Dark reader
+    - Return Youtube dislike
+    - Youtube non-stop
+    - 7TV
+    - Onetab
 - Setup backup jobs
 - Adjust mouse speed/acceleration
 - Verify Redshift is working
@@ -52,7 +62,9 @@ Post Install Steps/Checks:
 - Open a toml file and make sure taplo works
 - Open brave-browser in a terminal and verify no dbus display errors
 
-(The config repo contains an i3 config. Should not need to generate a new one)
+Known Issues:
+
+- Brave might not be able to access the keyring properly on the first login. This should be fixed after another restart. Run Brave from the terminal to see if this is occurring
 
 DOTFILES INFO:
 
