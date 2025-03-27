@@ -426,7 +426,7 @@ fi
 
 old_login_file="/etc/pam.d/login"
 if [ -f $old_login_file ]; then
-    rm $old_login_file
+    sudo rm $old_login_file
 fi
 
 pam_d_dir="/etc/pam.d"
