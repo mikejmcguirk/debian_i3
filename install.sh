@@ -15,6 +15,10 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 new_spotify_key=false
 spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
 
+i3_color_repo="https://github.com/Raymo111/i3lock-color"
+i3_color_tag="2.13.c.5"
+i3_color_update=false
+
 # https://obsidian.md/download
 obsidian_update=false
 obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
@@ -297,15 +301,15 @@ fi
 # Window Manager
 ################
 
-# More keyring debugging to do
-
 if $fresh_install; then
     # Xserver
     sudo apt install -y xorg
 
-    #wm
+    # Wm
     sudo apt install -y i3
     sudo apt install -y i3-wm # Because sure why not
+
+    # Locking
 
     # Wallpaper/compositing
     sudo apt install -y feh
@@ -323,6 +327,26 @@ if $fresh_install; then
     sudo apt install -y policykit-1
     sudo apt install -y at-spi2-core # Re-installation also seems to help with this
     sudo apt install -y libpam-gnome-keyring # This should already be installed but let's be safe
+
+    # TODO: Put automatic startx here
+    if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
+        cat << 'EOF' >> "$HOME/.bashrc"
+
+if [ -f "$HOME/.bashrc_custom" ]; then
+    . "$HOME/.bashrc_custom"
+fi
+EOF
+    fi
+
+    # TODO:
+    # - rofi
+    # - i3 hotkeys
+    # - start i3 with certain windows open in certain views
+    # - i3 aesthetics
+    # - Go through post-install steps and make sure they work
+
+    # FUTURE: This seems like a cool tool: https://github.com/svenstaro/rofi-calc
+    # But skipping from now because it looks to require a lot of building from source
 
     # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
     # if [ -n "$(lspci | grep -i nvidia)" ]; then
@@ -344,6 +368,67 @@ fi
 # i3 + default session script
 # - brave keyring error
 # - other brave SSL errors
+
+##################
+# betterlockscreen
+##################
+
+if $fresh_install && $i3_color_update; then
+    echo "Cannot fresh install and update i3_color"
+    exit 1
+fi
+
+if $fresh_install; then
+    # The built binary is called i3lock, so remove the old one to avoid conflicts
+    sudo apt remove -y i3lock
+
+    # i3-color deps
+    sudo apt install -y autoconf
+    subo apt install -y gcc
+    subo apt install -y make
+    subo apt install -y pkg-config
+    subo apt install -y libpam0g-dev
+    subo apt install -y libcairo2-dev
+    subo apt install -y libfontconfig1-dev
+    subo apt install -y libxcb-composite0-dev
+    subo apt install -y libev-dev
+    subo apt install -y libx11-xcb-dev
+    subo apt install -y libxcb-xkb-dev
+    subo apt install -y libxcb-xinerama0-dev
+    subo apt install -y libxcb-randr0-dev
+    subo apt install -y libxcb-image0-dev
+    subo apt install -y libxcb-util0-dev
+    subo apt install -y libxcb-xrm-dev
+    subo apt install -y libxkbcommon-dev
+    subo apt install -y libxkbcommon-x11-dev
+    subo apt install -y libjpeg-dev
+    subo apt install -y libgif-dev
+fi
+
+if $fresh_install || $i3_color_update; then
+    i3_color_git_dir="$HOME/.local/bin/i3lock-color"
+    [ ! -d "$i3_color_git_dir" ] && mkdir -p "$i3_color_git_dir"
+    cd "$i3_color_git_dir" || { echo "Error: Cannot cd to $i3_color_git_dir"; exit 1; }
+fi
+
+if $fresh_install; then
+    git clone $i3_color_repo "$i3_color_git_dir"
+elif $i3_color_update; then
+    git pull
+fi
+
+if $fresh_install || $i3_color_update; then
+    git checkout "$i3_color_tag" || { echo "Error: Cannot checkout $i3_color_tag"; exit 1; }
+    ./install-i3lock-color.sh
+    cd "$HOME"
+fi
+
+if $fresh_install; then
+    cat << EOF >> "$HOME/.bashrc"
+
+export PATH="\$PATH:$i3_color_git_dir/build"
+EOF
+fi
 
 ##################
 # Custom Apt Repos
@@ -394,8 +479,6 @@ fi
 ###########
 
 sudo apt remove -y neovim
-sudo apt autoremove -y
-sudo apt autoclean -y
 
 ##############
 # Get Dotfiles
@@ -405,15 +488,6 @@ if $fresh_install; then
     if [ -z "$dotfiles_url" ] ; then
         echo "Error: dotfiles_url must be set."
         exit 1
-    fi
-
-    if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
-        cat << 'EOF' >> "$HOME/.bashrc"
-
-if [ -f "$HOME/.bashrc_custom" ]; then
-    . "$HOME/.bashrc_custom"
-fi
-EOF
     fi
 
     dotfile_dir="$HOME/.cfg"
@@ -750,6 +824,7 @@ if [ -z "$tmux_url" ] || [ -z "$tmux_branch" ] ; then
     exit 1
 fi
 
+# FUTURE: The logic should be improved to just handle this case
 if $fresh_install && $tmux_update ; then
     echo "Cannot do a fresh install and a tmux update at the same time"
     exit 1
@@ -781,7 +856,7 @@ fi
 if $fresh_install; then
     cat << EOF >> "$HOME/.bashrc"
 
-export PATH="\$PATH:/$tmux_git_dir"
+export PATH="\$PATH:$tmux_git_dir"
 EOF
 fi
 
@@ -847,6 +922,9 @@ fi
 #########
 # Wrap Up
 #########
+
+sudo apt autoremove -y
+sudo apt autoclean -y
 
 # TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
