@@ -32,17 +32,14 @@ Reboot as directed
 
 Post Install Steps/Checks:
 
-- Nvim
-  - Run ``which nvim`` to verify the right path is being seen
-  - Run nvim to pull in plugins
-  - Open a config file to verify lua_ls works
-- Enter tmux, use prefix-I to download plugins
-- Create a Github token and use it to push
+- Set qalculate to dark mode
+- Set Gnome Disk Utility to dark mode
 - Pull in Wireguard configs
+- Test VLC
 - Setup qbittorrent in GUI
-- Edit GUI Spotify settings
-- Configure Brave default pages, add bookmarks, and disable ctrl+w/ctrl+W keys
+- Fix Redshift config and test
 - Brave
+  - Verify no errors when opening in terminal
   - Configure default pages
   - Add bookmarks
   - Disable ctrl+w/ctrl+W keys (might need Shortkeys)
@@ -52,15 +49,35 @@ Post Install Steps/Checks:
     - Youtube non-stop
     - 7TV
     - Onetab
+- Edit GUI Spotify settings
+- Test that config pathing works
+- Setup Github token
+- Nvim
+  - Run ``which nvim`` to verify the right path is being seen
+  - Run nvim to pull in plugins
+  - Verify the LSP/formatter/linter work for the following:
+    - lua
+    - bash
+    - Javascript
+    - html
+    - css
+    - go
+    - rust
+    - toml
+- Check btop
+- Obsidian
+  - Make sure app works
+  - Import vault and make sure it loads
+  - Test that Nvim integration (screencaps, renames, Obsidian open) works
+- Check nvitop
+- Verify Discord works (including audio)
+- ghostty should open with mod+enter in i3 with Cousine Nerd Font
+- Enter tmux, use prefix-I to download plugins
 - Setup backup jobs
 - Adjust mouse speed/acceleration
-- Verify Redshift is working
-- Set qalculate to dark mode
 - Rust
-  - Open a project and make sure rust-analyzer works
   - Make sure cargo flamegraph --release works
-- Open a toml file and make sure taplo works
-- Open brave-browser in a terminal and verify no dbus display errors
+  - Test tokei and rg
 
 Known Issues:
 

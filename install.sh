@@ -178,19 +178,17 @@ if $fresh_install; then
     sudo apt install -y fzf
     sudo apt install -y vim
     sudo apt install -y unzip
-    sudo apt install -y qalculate-gtk
     sudo apt install -y mesa-utils # Get OpenGL info
     sudo apt install -y automake # tmux build dep
     sudo apt install -y autoconf # tmux build dep
     sudo apt install -y sqlite3
+    sudo apt install -y qalculate-gtk
     sudo apt install -y gnome-disk-utility
     # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
     sudo apt install -y linux-perf
-fi
 
-if $fresh_install; then
     echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 fi
 
@@ -213,7 +211,7 @@ if $fresh_install; then
     git config --global user.email "mike.j.mcguirk@gmail.com"
     # Rebase can do goofy stuff
     git config --global pull.rebase false
-    # FUTURE: This is dumb
+    # TODO: This is dumb
     git config --global credential.helper store
 fi
 
@@ -245,9 +243,9 @@ fi
 
 if $fresh_install; then
     sudo apt install -y vlc
-    sudo apt install -y qbittorrent
     sudo apt install -y hexchat
     sudo apt install -y libreoffice
+    sudo apt install -y qbittorrent
     # FUTURE: Should learn GIMP 3
     # sudo apt install -y pinta
 
