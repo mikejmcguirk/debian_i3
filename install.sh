@@ -307,7 +307,7 @@ if $fresh_install; then
 
     #wm
     sudo apt install -y i3
-    sudo apt install -y i3-wm
+    sudo apt install -y i3-wm # Because sure why not
 
     # Wallpaper/compositing
     sudo apt install -y feh
@@ -323,8 +323,7 @@ if $fresh_install; then
     # Brave complains/has dbus issues if it cannot see the policykit user
     # Reinstall to make sure it's there
     sudo apt install -y policykit-1
-    # Re-installation also seems to help with this
-    sudo apt install -y at-spi2-core # sudo run?
+    sudo apt install -y at-spi2-core # Re-installation also seems to help with this
     sudo apt install -y libpam-gnome-keyring # This should already be installed but let's be safe
 
     # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
@@ -423,16 +422,16 @@ EOF
     [ ! -d "$dotfile_dir" ] && mkdir -p "$dotfile_dir"
     git clone --bare $dotfiles_url "$dotfile_dir"
     git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main --force
-fi
 
-old_login_file="/etc/pam.d/login"
-if [ -f $old_login_file ]; then
-    sudo rm $old_login_file
-fi
+    old_login_file="/etc/pam.d/login"
+    if [ -f $old_login_file ]; then
+        sudo rm $old_login_file
+    fi
 
-pam_d_dir="/etc/pam.d"
-[ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
-sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
+    pam_d_dir="/etc/pam.d"
+    [ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
+    sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
+fi
 
 ########
 # Neovim
@@ -753,6 +752,11 @@ if [ -z "$tmux_url" ] || [ -z "$tmux_branch" ] ; then
     exit 1
 fi
 
+if $fresh_install && $tmux_update ; then
+    echo "Cannot do a fresh install and a tmux update at the same time"
+    exit 1
+fi
+
 tmux_git_dir="$HOME/.local/bin/tmux"
 [ ! -d "$tmux_git_dir" ] && mkdir -p "$tmux_git_dir"
 
@@ -783,20 +787,30 @@ export PATH="\$PATH:/$tmux_git_dir"
 EOF
 fi
 
-if $fresh_install; then
+tmux_plugins_dir="$HOME/.config/tmux/plugins"
+[ ! -d "$tmux_plugins_dir" ] && mkdir -p "$tmux_plugins_dir"
+tpm_dir="$tmux_plugins_dir/tpm"
+power_dir="$tmux_plugins_dir/tmux-power"
+
+if $fresh_install || $tmux_update ; then
     if  [ -z "$tpm_repo" ] || [ -z $tmux_power_repo ]; then
         echo "Error: tpm_repo and tmux_power_repo must be set"
         exit 1
     fi
+fi
 
-    # tmux list-keys to see where the binding looks to run the script
-    tmux_plugins_dir="$HOME/.config/tmux/plugins"
-    [ ! -d "$tmux_plugins_dir" ] && mkdir -p "$tmux_plugins_dir"
-    tpm_dir="$tmux_plugins_dir/tpm"
-    power_dir="$tmux_plugins_dir/power"
-
+if $fresh_install; then
+    # tmux list-keys to see where the binding looks to run the script to install
+    # Should be prefix-I
     git clone $tpm_repo "$tpm_dir"
     git clone $tmux_power_repo "$power_dir"
+fi
+
+# FUTURE: Can't the plugin manager just handle this?
+if $tmux_update; then
+    cd "$power_dir" || { echo "Error: Cannot cd to $tmux_git_dir"; exit 1; }
+    git pull
+    cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
 
 ################
