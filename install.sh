@@ -19,6 +19,16 @@ i3_color_repo="https://github.com/Raymo111/i3lock-color"
 i3_color_tag="2.13.c.5"
 i3_color_update=false
 
+magick_repo="https://github.com/ImageMagick/ImageMagick"
+magick_tag="7.1.1-46"
+magick_update=false
+
+# https://github.com/betterlockscreen/betterlockscreen
+# Last Tag: 4.4.0
+# The install script automatically picks the latest tag, so just include above for reference and
+# set update to true when needed
+betterlock_update=true
+
 # https://obsidian.md/download
 obsidian_update=false
 obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
@@ -297,6 +307,31 @@ EOF
     fi
 fi
 
+##############
+# Get Dotfiles
+##############
+
+if $fresh_install; then
+    if [ -z "$dotfiles_url" ] ; then
+        echo "Error: dotfiles_url must be set."
+        exit 1
+    fi
+
+    dotfile_dir="$HOME/.cfg"
+    [ ! -d "$dotfile_dir" ] && mkdir -p "$dotfile_dir"
+    git clone --bare $dotfiles_url "$dotfile_dir"
+    git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main --force
+
+    old_login_file="/etc/pam.d/login"
+    if [ -f $old_login_file ]; then
+        sudo rm $old_login_file
+    fi
+
+    pam_d_dir="/etc/pam.d"
+    [ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
+    sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
+fi
+
 ################
 # Window Manager
 ################
@@ -369,9 +404,9 @@ fi
 # - brave keyring error
 # - other brave SSL errors
 
-##################
-# betterlockscreen
-##################
+##############
+# i3lock-color
+##############
 
 if $fresh_install && $i3_color_update; then
     echo "Cannot fresh install and update i3_color"
@@ -405,8 +440,8 @@ if $fresh_install; then
     subo apt install -y libgif-dev
 fi
 
+i3_color_git_dir="$HOME/.local/bin/i3lock-color"
 if $fresh_install || $i3_color_update; then
-    i3_color_git_dir="$HOME/.local/bin/i3lock-color"
     [ ! -d "$i3_color_git_dir" ] && mkdir -p "$i3_color_git_dir"
     cd "$i3_color_git_dir" || { echo "Error: Cannot cd to $i3_color_git_dir"; exit 1; }
 fi
@@ -417,9 +452,51 @@ elif $i3_color_update; then
     git pull
 fi
 
+i3_color_build_dir="$i3_color_git_dir/build"
 if $fresh_install || $i3_color_update; then
     git checkout "$i3_color_tag" || { echo "Error: Cannot checkout $i3_color_tag"; exit 1; }
     ./install-i3lock-color.sh
+    # betterlockscreen requirement
+    mv "$i3_color_build_dir/i3lock" "$i3_color_build_dir/i3lock-color"
+
+    cd "$HOME"
+fi
+
+if $fresh_install; then
+    cat << EOF >> "$HOME/.bashrc"
+
+export PATH="\$PATH:$i3_color_build_dir"
+EOF
+fi
+
+####################################
+# ImageMagick (betterlockscreen dep)
+####################################
+
+if $fresh_install && $magick_update; then
+    echo "Cannot fresh install and update magick"
+    exit 1
+fi
+
+magick_git_dir="$HOME/.local/bin/magick"
+if $fresh_install || $magick_update; then
+    [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
+    cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
+fi
+
+if $fresh_install; then
+    git clone $magick_repo "$magick_git_dir"
+elif $magick_update; then
+    git pull
+fi
+
+if $fresh_install || $magick_update; then
+    git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
+    ./configure
+    make
+    sudo ldconfig /usr/local/lib
+    sudo make install
+
     cd "$HOME"
 fi
 
@@ -428,6 +505,25 @@ if $fresh_install; then
 
 export PATH="\$PATH:$i3_color_git_dir/build"
 EOF
+fi
+
+##################
+# betterlockscreen
+##################
+
+sudo apt install xautolock
+
+if $fresh_install; then
+    sudo apt install -y bc
+    sudo apt install -y xautolock
+fi
+
+if $fresh_install || $betterlock_update; then
+    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | sudo bash -s system latest true
+fi
+
+if $fresh_install; then
+    betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 fi
 
 ##################
@@ -479,31 +575,6 @@ fi
 ###########
 
 sudo apt remove -y neovim
-
-##############
-# Get Dotfiles
-##############
-
-if $fresh_install; then
-    if [ -z "$dotfiles_url" ] ; then
-        echo "Error: dotfiles_url must be set."
-        exit 1
-    fi
-
-    dotfile_dir="$HOME/.cfg"
-    [ ! -d "$dotfile_dir" ] && mkdir -p "$dotfile_dir"
-    git clone --bare $dotfiles_url "$dotfile_dir"
-    git --git-dir="$dotfile_dir" --work-tree="$HOME" checkout main --force
-
-    old_login_file="/etc/pam.d/login"
-    if [ -f $old_login_file ]; then
-        sudo rm $old_login_file
-    fi
-
-    pam_d_dir="/etc/pam.d"
-    [ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
-    sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
-fi
 
 ########
 # Neovim
