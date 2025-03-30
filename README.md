@@ -33,7 +33,6 @@ Reboot as directed
 Post Install Steps/Checks:
 
 - Set qalculate to dark mode
-- Set Gnome Disk Utility to dark mode
 - Pull in Wireguard configs
 - Test VLC
 - Setup qbittorrent in GUI

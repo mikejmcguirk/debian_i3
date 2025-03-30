@@ -183,8 +183,6 @@ fi
 # Utilities
 ###########
 
-# TODO: Virtual Box Info: https://www.virtualbox.org/wiki/Linux_Downloads
-
 if $fresh_install; then
     sudo apt install -y curl
     sudo apt install -y xclip # For copy/paste out of Neovim
@@ -202,6 +200,9 @@ if $fresh_install; then
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
     sudo apt install -y linux-perf
+
+    systemctl --user start dconf.service
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
     echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 fi
@@ -225,7 +226,6 @@ if $fresh_install; then
     git config --global user.email "mike.j.mcguirk@gmail.com"
     # Rebase can do goofy stuff
     git config --global pull.rebase false
-    # TODO: This is dumb
     git config --global credential.helper store
 fi
 
@@ -262,9 +262,6 @@ if $fresh_install; then
     sudo apt install -y qbittorrent
     # FUTURE: Should learn GIMP 3
     # sudo apt install -y pinta
-
-    # TODO: Try this
-    # https://www.pinta-project.com/howto/installing-pinta
 fi
 
 ##########
@@ -363,7 +360,6 @@ if $fresh_install; then
     sudo apt install -y at-spi2-core # Re-installation also seems to help with this
     sudo apt install -y libpam-gnome-keyring # This should already be installed but let's be safe
 
-    # TODO: Put automatic startx here
     if ! grep -q ".bashrc_custom" "$HOME/.bashrc"; then
         cat << 'EOF' >> "$HOME/.bashrc"
 
@@ -372,13 +368,6 @@ if [ -f "$HOME/.bashrc_custom" ]; then
 fi
 EOF
     fi
-
-    # TODO:
-    # - rofi
-    # - i3 hotkeys
-    # - start i3 with certain windows open in certain views
-    # - i3 aesthetics
-    # - Go through post-install steps and make sure they work
 
     # FUTURE: This seems like a cool tool: https://github.com/svenstaro/rofi-calc
     # But skipping from now because it looks to require a lot of building from source
@@ -995,7 +984,6 @@ fi
 sudo apt autoremove -y
 sudo apt autoclean -y
 
-# TODO: Unsure if I need this. Allows function keys to work properly on Keychron K2
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
 # sudo update-initramfs -u
 
