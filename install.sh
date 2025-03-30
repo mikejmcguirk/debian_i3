@@ -511,8 +511,6 @@ fi
 # betterlockscreen
 ##################
 
-sudo apt install xautolock
-
 if $fresh_install; then
     sudo apt install -y bc
     sudo apt install -y xautolock
