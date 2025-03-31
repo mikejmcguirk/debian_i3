@@ -196,6 +196,7 @@ if $fresh_install; then
     sudo apt install -y sqlite3
     sudo apt install -y qalculate-gtk
     sudo apt install -y gnome-disk-utility
+    sudo apt install -y maim
     # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
@@ -261,7 +262,7 @@ if $fresh_install; then
     sudo apt install -y libreoffice
     sudo apt install -y qbittorrent
     # FUTURE: Should learn GIMP 3
-    # sudo apt install -y pinta
+    sudo apt install -y kolourpaint
 fi
 
 ##########
@@ -341,8 +342,6 @@ if $fresh_install; then
     sudo apt install -y i3
     sudo apt install -y i3-wm # Because sure why not
 
-    # Locking
-
     # Wallpaper/compositing
     sudo apt install -y feh
     sudo apt install -y picom
@@ -393,6 +392,47 @@ fi
 # - brave keyring error
 # - other brave SSL errors
 
+######
+# rofi
+######
+
+if $fresh_install; then
+    sudo apt install -y rofi
+
+    # We want to be able to reboot and shutdown from Rofi
+    if ! getent group sudo > /dev/null; then
+        echo "Error: The 'sudo' group does not exist on this system"
+        echo "Please create the group or modify the script to use a different group/username"
+        exit 1
+    fi
+
+    reboot_shutdown_file="/etc/sudoers.d/reboot-shutdown"
+    if ! sudo touch "$reboot_shutdown_file"; then
+        echo "Failed to create $reboot_shutdown_file"
+        exit 1
+    fi
+
+    if ! echo "%sudo ALL=(ALL) NOPASSWD: /sbin/reboot, /sbin/shutdown" | sudo tee "$reboot_shutdown_file" > /dev/null; then
+        echo "Failed to write to $reboot_shutdown_file"
+        sudo rm -f "$reboot_shutdown_file"
+        exit 1
+    fi
+
+    if ! sudo chmod 440 "$reboot_shutdown_file"; then
+        echo "Failed to set permissions on $reboot_shutdown_file"
+        sudo rm -f "$reboot_shutdown_file"
+        exit 1
+    fi
+
+    if ! sudo visudo -c -f "$reboot_shutdown_file"; then
+        echo "Syntax check failed for $reboot_shutdown_file"
+        sudo rm -f "$reboot_shutdown_file"
+        exit 1
+    fi
+
+    echo "Successfully configured $reboot_shutdown_file"
+fi
+
 ##############
 # i3lock-color
 ##############
@@ -403,10 +443,9 @@ if $fresh_install && $i3_color_update; then
 fi
 
 if $fresh_install; then
-    # The built binary is called i3lock, so remove the old one to avoid conflicts
     sudo apt remove -y i3lock
 
-    # i3-color deps
+    # i3lock-color deps
     sudo apt install -y autoconf
     subo apt install -y gcc
     subo apt install -y make
@@ -568,6 +607,7 @@ sudo apt remove -y neovim
 ########
 
 nvim_root_dir="/opt"
+nvim_install_dir="$nvim_root_dir/nvim-linux-x86_64"
 
 if $fresh_install || $nvim_update; then
     if [ -z "$nvim_url" ] || [ -z "$nvim_tar" ] ; then
@@ -575,7 +615,6 @@ if $fresh_install || $nvim_update; then
         exit 1
     fi
 
-    nvim_install_dir="$nvim_root_dir/nvim"
     if [ -d "$nvim_install_dir" ]; then
         echo "Removing existing Nvim installation at $nvim_install_dir..."
         sudo rm -rf $nvim_install_dir
@@ -602,7 +641,7 @@ if $fresh_install; then
 
     cat << EOF >> "$HOME/.bashrc"
 
-export PATH="\$PATH:$nvim_root_dir/nvim-linux-x86_64/bin"
+export PATH="\$PATH:$nvim_install_dir/bin"
 EOF
 fi
 
