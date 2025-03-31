@@ -37,7 +37,7 @@ obsidian_file=$(basename "$obsidian_url")
 # https://github.com/neovim/neovim/releases
 # NOTE: Check the instructions as well as the tar URL in case they change
 nvim_update=false
-nvim_url="https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz"
+nvim_url="https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-linux-x86_64.tar.gz"
 nvim_tar=$(basename "$nvim_url")
 nvim_config_repo="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
 
@@ -141,7 +141,7 @@ if $fresh_install; then
     [ ! -d "$HOME/.ssh" ] && mkdir -p "$HOME/.ssh"
     chmod 700 "$HOME/.ssh"
 
-    # FUTURE: There are settings that can be added as well to specify stronger cryptography
+    # FUTURE: There are settings that can be added as well to require stronger cryptography
     cat << 'EOF' > ~/.ssh/config
 Host *
 ServerAliveInterval 60
@@ -264,7 +264,6 @@ if $fresh_install; then
     sudo apt install -y hexchat
     sudo apt install -y libreoffice
     sudo apt install -y qbittorrent
-    # FUTURE: Should learn GIMP 3
     sudo apt install -y kolourpaint
 fi
 
