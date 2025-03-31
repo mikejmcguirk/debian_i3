@@ -203,6 +203,9 @@ if $fresh_install; then
     sudo apt install -y linux-perf
 
     systemctl --user start dconf.service
+    # When you run this with the ghostty appimage open, the appimage environment breaks
+    # The path to the linux .so files this relies on
+    # Just run it now since everything should be dark mode anyway
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
     echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
