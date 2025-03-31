@@ -346,6 +346,10 @@ if $fresh_install; then
     sudo apt install -y feh
     sudo apt install -y picom
 
+    # polybar
+    sudo apt install -y polybar
+    sudo apt install -y psmisc # For killall
+
     # Backend
     sudo apt install -y dbus
     sudo apt install -y dbus-x11
@@ -705,7 +709,7 @@ fi
 if $fresh_install; then
     cat << EOF >> "$HOME/.bashrc"
 
-export PATH="\$PATH:$$lua_ls_install_dir/bin"
+export PATH="\$PATH:$lua_ls_install_dir/bin"
 EOF
 fi
 
