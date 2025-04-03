@@ -204,6 +204,7 @@ if $fresh_install; then
     sudo apt install -y gnome-disk-utility
     sudo apt install -y rsync
     sudo apt install -y maim
+    sudo apt install -y libglib2.0-bin
     # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
