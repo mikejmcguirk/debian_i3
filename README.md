@@ -32,7 +32,7 @@ Reboot as directed
 
 Post Install Steps/Checks:
 
-- Set qalculate to dark mode
+- Verify qalculate is in dark mode
 - Pull in Wireguard configs
 - Test VLC
 - Setup qbittorrent in GUI
@@ -57,6 +57,7 @@ Post Install Steps/Checks:
   - Verify the LSP/formatter/linter work for the following:
     - lua
     - bash
+    - python
     - Javascript
     - html
     - css
@@ -77,6 +78,10 @@ Post Install Steps/Checks:
 - Rust
   - Make sure cargo flamegraph --release works
   - Test tokei and rg
+- Thunar
+  - Verify dark mode
+  - Do an open with > image viewer to set that default
+- While this script does install rsync, it does not contain automation for file backups. You will need to set that up manually
 
 Known Issues:
 

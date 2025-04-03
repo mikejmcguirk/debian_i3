@@ -15,6 +15,8 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 new_spotify_key=false
 spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
 
+libsecret_update=false
+
 i3_color_repo="https://github.com/Raymo111/i3lock-color"
 i3_color_tag="2.13.c.5"
 i3_color_update=false
@@ -41,12 +43,12 @@ nvim_url="https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-linux-
 nvim_tar=$(basename "$nvim_url")
 nvim_config_repo="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
 
-# https://github.com/neovim/neovim/releases
+# https://github.com/aristocratos/btop
 btop_update=false
 btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86_64-linux-musl.tbz"
 btop_file=$(basename "$btop_url")
 
-# https://github.com/neovim/neovim/releases
+# https://github.com/LuaLS/lua-language-server
 lua_ls_update=false
 lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
 lua_ls_file=$(basename "$lua_ls_url")
@@ -85,6 +87,10 @@ nerd_font_filename=$(basename "$nerd_font_url")
 
 discord_update=false
 discord_url="https://discord.com/api/download?platform=linux&format=deb"
+
+# https://www.virtualbox.org/wiki/Linux_Downloads
+vbox_update=false
+vbox_url="https://download.virtualbox.org/virtualbox/7.1.6/virtualbox-7.1_7.1.6-167084~Debian~bookworm_amd64.deb"
 
 dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
 
@@ -196,19 +202,19 @@ if $fresh_install; then
     sudo apt install -y sqlite3
     sudo apt install -y qalculate-gtk
     sudo apt install -y gnome-disk-utility
+    sudo apt install -y rsync
     sudo apt install -y maim
     # NOTE: The Debian repo has a couple tools for reading perf off of Rust source code
     # At least for now, I'm going to avoid speculatively installing them
     # They can be checked with apt search linux-perf
     sudo apt install -y linux-perf
+    echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 
     systemctl --user start dconf.service
     # When you run this with the ghostty appimage open, the appimage environment breaks
     # The path to the linux .so files this relies on
     # Just run it now since everything should be dark mode anyway
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-
-    echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 fi
 
 ###########
@@ -225,12 +231,11 @@ fi
 #####
 
 if $fresh_install; then
-    sudo apt install -y git
+    sudo apt install -y git-all
     git config --global user.name "Mike J. McGuirk"
     git config --global user.email "mike.j.mcguirk@gmail.com"
     # Rebase can do goofy stuff
     git config --global pull.rebase false
-    git config --global credential.helper store
 fi
 
 ###########
@@ -265,6 +270,22 @@ if $fresh_install; then
     sudo apt install -y libreoffice
     sudo apt install -y qbittorrent
     sudo apt install -y kolourpaint
+    sudo apt install -y evince
+    sudo apt install -y thunar
+    sudo apt install -y gtk2-engines-murrine
+    sudo apt install -y arc-theme
+
+    mkdir -p ~/.config/gtk-3.0
+    cat << EOF > ~/.config/gtk-3.0/settings.ini
+[Settings]
+gtk-theme-name=Arc-Dark
+gtk-application-prefer-dark-theme=1
+EOF
+
+    cat << EOF > ~/.gtkrc-2.0
+gtk-theme-name="Arc-Dark"
+gtk-icon-theme-name="Adwaita"
+EOF
 fi
 
 ##########
@@ -330,6 +351,41 @@ if $fresh_install; then
     pam_d_dir="/etc/pam.d"
     [ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
     sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
+
+    chmod +x "$HOME/.config/polybar/launch-polybar"
+    chmod +x "$HOME/.local/bin/maim-script"
+    chmod +x "$HOME/.local/bin/rofi-scripts/rofi-power"
+fi
+
+
+###########
+# libsecret
+###########
+
+# This is installed to prevent Brave from trying to use KWallet
+# This is also installed to store git tokens
+
+if $fresh_install; then
+    sudo apt install -y gnome-keyring
+    sudo apt install -y libsecret-tools
+    sudo apt install -y libsecret-1-0
+    sudo apt install -y libsecret-1-dev
+
+fi
+
+libsecret_path="/usr/share/doc/git/contrib/credential/libsecret"
+if $fresh_install || $libsecret_update; then
+    cd $libsecret_path
+    sudo make
+
+    git config --global credential.helper libsecret
+fi
+
+if $fresh_install; then
+    cat << EOF >> "$HOME/.bashrc"
+
+export PATH="\$PATH:$libsecret_path"
+EOF
 fi
 
 ################
@@ -355,9 +411,8 @@ if $fresh_install; then
     # Backend
     sudo apt install -y dbus
     sudo apt install -y dbus-x11
-    sudo apt install -y gnome-keyring # Prevent Brave from trying to use Kwallet
-    sudo apt install -y libsecret-tools # Prevent Brave from trying to use Kwallet
-    sudo apt install -y libsecret-1-0 # Prevent Brave from trying to use Kwallet
+
+
     sudo apt install -y upower # Brave uses this to check laptop power
     # Brave complains/has dbus issues if it cannot see the policykit user
     # Reinstall to make sure it's there
@@ -496,7 +551,7 @@ if $fresh_install || $i3_color_update; then
     cd "$HOME"
 fi
 
-if $fresh_install; then
+if $libsecret_path; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$i3_color_build_dir"
@@ -607,6 +662,10 @@ fi
 ###########
 
 sudo apt remove -y neovim
+bad_neovim_dir="$HOME/.config/neovim"
+if [ -d "$bad_neovim_dir" ]; then
+    rm -rf "$bad_neovim_dir"
+fi
 
 ########
 # Neovim
@@ -851,9 +910,9 @@ if $fresh_install || $discord_update; then
 
     deb_file="$discord_dl_dir/discord_deb.deb"
     echo "Downloading Discord .deb from $discord_url..."
-    curl -L -o "$deb_file" "$discord_url" || {
-        echo "Error: Download failed."
-    }
+    # curl -L -o "$deb_file" "$discord_url" || {
+    #     echo "Error: Download failed."
+    # }
 
     if ! curl -L -o "$deb_file" "$discord_url"; then
         echo "Unable to download Discord .deb, continuing..."
@@ -875,6 +934,25 @@ if $fresh_install || $discord_update; then
 
     rm -f "$deb_file"
 fi
+
+############
+# VirtualBox
+############
+
+if $fresh_install || $vbox_update; then
+    vbox_dl_dir="$HOME/.local"
+    [ ! -d "$vbox_dl_dir" ] && mkdir -p "$vbox_dl_dir"
+
+    vbox_deb_file="$vbox_dl_dir/vbox_deb.deb"
+    curl -L -o "$vbox_deb_file" "$vbox_url" || {
+        echo "Error: Download failed."
+    }
+
+    sudo apt install -y "$vbox_deb_file"
+
+    rm -f "$vbox_deb_file"
+fi
+
 
 ###############
 # Add Nerd Font
@@ -1020,6 +1098,60 @@ if $fresh_install ; then
     "$cargo_bin" install cargo-update
 else
     $cargo_bin install-update -a
+fi
+
+####################
+# Network Connection
+####################
+
+sudo apt install -y network-manager
+
+sudo systemctl stop networking
+sudo systemctl stop systemd-networkd
+sudo systemctl disable networking
+sudo systemctl disable systemd-networkd
+
+if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
+    echo "Configuring NetworkManager to manage all devices..."
+    sudo sed -i '/\[ifupdown\]/a managed=true' /etc/NetworkManager/NetworkManager.conf
+fi
+
+sudo systemctl enable NetworkManager
+sudo systemctl start NetworkManager
+
+echo "Available network devices:"
+nmcli device
+
+WIFI_DEVICE=$(nmcli device | grep wifi | awk '{print $1}' || true)
+if [ -n "$WIFI_DEVICE" ]; then
+    echo "Scanning for WiFi networks on $WIFI_DEVICE..."
+    nmcli device wifi list ifname "$WIFI_DEVICE"
+else
+    echo "No WiFi device detected."
+fi
+
+echo "Available devices from 'nmcli device':"
+nmcli device | awk 'NR>1 {print $1 " (" $2 ")"}'
+read -p "Enter the device name to connect (e.g., enp0s3 or wlan0): " DEVICE
+
+if nmcli device show "$DEVICE" | grep -q "GENERAL.TYPE:.*wifi"; then
+    echo "WiFi device selected: $DEVICE"
+    nmcli device wifi list ifname "$DEVICE"
+    read -p "Enter the SSID of the WiFi network: " SSID
+    read -s -p "Enter the password for '$SSID': " PASSWORD
+    echo
+    nmcli device wifi connect "$SSID" password "$PASSWORD" ifname "$DEVICE"
+else
+    echo "Wired/bridge device selected: $DEVICE"
+    nmcli device connect "$DEVICE"
+fi
+
+echo "Checking connectivity..."
+if ping -c 4 google.com >/dev/null 2>&1; then
+    echo "Network is up!"
+else
+    echo "Network failed. Check 'nmcli device' or logs with 'journalctl -u NetworkManager'."
+    exit 1
 fi
 
 #########
