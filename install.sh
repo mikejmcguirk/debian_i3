@@ -509,25 +509,25 @@ if $fresh_install; then
 
     # i3lock-color deps
     sudo apt install -y autoconf
-    subo apt install -y gcc
-    subo apt install -y make
-    subo apt install -y pkg-config
-    subo apt install -y libpam0g-dev
-    subo apt install -y libcairo2-dev
-    subo apt install -y libfontconfig1-dev
-    subo apt install -y libxcb-composite0-dev
-    subo apt install -y libev-dev
-    subo apt install -y libx11-xcb-dev
-    subo apt install -y libxcb-xkb-dev
-    subo apt install -y libxcb-xinerama0-dev
-    subo apt install -y libxcb-randr0-dev
-    subo apt install -y libxcb-image0-dev
-    subo apt install -y libxcb-util0-dev
-    subo apt install -y libxcb-xrm-dev
-    subo apt install -y libxkbcommon-dev
-    subo apt install -y libxkbcommon-x11-dev
-    subo apt install -y libjpeg-dev
-    subo apt install -y libgif-dev
+    sudo apt install -y gcc
+    sudo apt install -y make
+    sudo apt install -y pkg-config
+    sudo apt install -y libpam0g-dev
+    sudo apt install -y libcairo2-dev
+    sudo apt install -y libfontconfig1-dev
+    sudo apt install -y libxcb-composite0-dev
+    sudo apt install -y libev-dev
+    sudo apt install -y libx11-xcb-dev
+    sudo apt install -y libxcb-xkb-dev
+    sudo apt install -y libxcb-xinerama0-dev
+    sudo apt install -y libxcb-randr0-dev
+    sudo apt install -y libxcb-image0-dev
+    sudo apt install -y libxcb-util0-dev
+    sudo apt install -y libxcb-xrm-dev
+    sudo apt install -y libxkbcommon-dev
+    sudo apt install -y libxkbcommon-x11-dev
+    sudo apt install -y libjpeg-dev
+    sudo apt install -y libgif-dev
 fi
 
 i3_color_git_dir="$HOME/.local/bin/i3lock-color"
