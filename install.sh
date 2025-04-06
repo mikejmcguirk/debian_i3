@@ -612,9 +612,9 @@ if $fresh_install; then
     sudo apt install -y xautolock
 fi
 
-if $fresh_install || $betterlock_update; then
-    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
-fi
+# if $fresh_install || $betterlock_update; then
+#     wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
+# fi
 
 # if $fresh_install; then
 #     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
@@ -1124,7 +1124,7 @@ if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
 fi
 
 sudo systemctl enable NetworkManager
-sudo systemctl restart NetworkManager
+sudo systemctl restart NetworkManager # Restart to pickup the re-written config
 
 echo "Available network devices:"
 nmcli device
