@@ -32,7 +32,7 @@ Reboot as directed
 
 ## Post Install Steps/Checks:
 
-- Run the following commands manually:
+- Run the following commands manually before using startx for the first time:
 
 ```bash
 cd $HOME/.local/bin/magick
@@ -40,9 +40,15 @@ cd $HOME/.local/bin/magick
 make
 sudo ldconfig /usr/local/lib
 sudo make install
+wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
+```
+- Then run the following after entering i3:
+
+```bash
+betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 ```
 
-*NOTE: For reasons I am unsure of, the Magick install does not complete correctly when done from the script. I am not sure what part of the process breaks it*
+*NOTE: For reasons I am unsure of, the Magick install does not complete correctly when done from the script. I am not sure what part of the process is broken*
 
 - Verify qalculate is in dark mode
 - Pull in Wireguard configs

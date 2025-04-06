@@ -1124,7 +1124,7 @@ if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
 fi
 
 sudo systemctl enable NetworkManager
-sudo systemctl start NetworkManager
+sudo systemctl restart NetworkManager
 
 echo "Available network devices:"
 nmcli device
