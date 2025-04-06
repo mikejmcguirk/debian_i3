@@ -492,6 +492,11 @@ if $fresh_install; then
         exit 1
     fi
 
+    cat << EOF >> "$HOME/.bashrc"
+
+export PATH="\$PATH:/sbin"
+EOF
+
     echo "Successfully configured $reboot_shutdown_file"
 fi
 
@@ -552,7 +557,7 @@ if $fresh_install || $i3_color_update; then
     cd "$HOME"
 fi
 
-if $libsecret_path; then
+if $fresh_install; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$i3_color_build_dir"
@@ -590,13 +595,6 @@ if $fresh_install || $magick_update; then
     cd "$HOME"
 fi
 
-if $fresh_install; then
-    cat << EOF >> "$HOME/.bashrc"
-
-export PATH="\$PATH:$i3_color_git_dir/build"
-EOF
-fi
-
 ##################
 # betterlockscreen
 ##################
@@ -607,7 +605,7 @@ if $fresh_install; then
 fi
 
 if $fresh_install || $betterlock_update; then
-    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | sudo bash -s system latest true
+    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | sudo bash -s user latest true
 fi
 
 if $fresh_install; then
@@ -1114,7 +1112,7 @@ sudo systemctl disable systemd-networkd
 
 if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
     echo "Configuring NetworkManager to manage all devices..."
-    sudo sed -i '/\[ifupdown\]/a managed=true' /etc/NetworkManager/NetworkManager.conf
+    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' /etc/NetworkManager/NetworkManager.conf
 fi
 
 sudo systemctl enable NetworkManager
