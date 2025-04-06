@@ -1,32 +1,35 @@
 WIP
 
-For Debian 12
+## General Notes
 
-Designed to produce an i3 system that initializes with startx
+- For Debian 12
+- Designed to produce an i3 system that initializes with startx
 
-When installing:
+## OS Installation Notes
 
 - I personally don't use the graphical install
 - At the software selection prompt, only choose standard system utilities
 
-Login first as root. Do the following:
+# After installing the OS
+
+- Login first as root. Do the following:
 
 ```bash
 apt update
-apt install sudo
+apt install -y sudo
 usermod -aG sudo [your admin user from setup]
 reboot
 ```
 
-Login as your admin user.
+- Login as your admin user.
+- Run this script from your home directory with:
 
-Run this script from your home directory with:
 ```bash
 wget https://raw.githubusercontent.com/mikejmcguirk/debian_i3/refs/heads/main/install.sh
 bash install.sh
 ```
 
-Reboot as directed
+- When the script is finished, reboot as directed
 
 <!--Save the update script. Run that with sudo bash as needed-->
 
