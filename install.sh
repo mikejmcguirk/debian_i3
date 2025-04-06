@@ -616,9 +616,9 @@ if $fresh_install || $betterlock_update; then
     wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
 fi
 
-if $fresh_install; then
-    betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
-fi
+# if $fresh_install; then
+#     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
+# fi
 
 ##################
 # Custom Apt Repos
