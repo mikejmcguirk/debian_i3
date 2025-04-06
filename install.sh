@@ -3,6 +3,14 @@
 set -e # quit on error
 cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 
+# NOTE: Any program that needs to be manually updated should have an associated variable with
+# "_update" in the name for easier search/grep
+
+# TODO: Note somewhere/somehow that sudo apt update/upgrade/autoremove/autoclean should be
+# run manually in order to make sure that all updates are run
+# Because the script runs in user context rather than root context, kernel updates might not
+# install
+
 ###################
 # Declare variables
 ###################
@@ -10,33 +18,15 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 # FUTURE: It would be better for the update flags to be handled through args
 # That way, you don't need to do post-run cleanup
 
-# https://www.spotify.com/de-en/download/linux/
-# Check directions for updated key
-new_spotify_key=false
-spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
-
-libsecret_update=false
 
 i3_color_repo="https://github.com/Raymo111/i3lock-color"
 i3_color_tag="2.13.c.5"
 i3_color_update=false
 
+# Last tag: 7.1.1-46
 magick_repo="https://github.com/ImageMagick/ImageMagick"
 magick_tag="7.1.1-46"
-magic_url="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.1-47/ImageMagick-82572af-gcc-x86_64.AppImage"
-magick_file=$(basename "$magic_url")
 magick_update=false
-
-# https://github.com/betterlockscreen/betterlockscreen
-# Last Tag: 4.4.0
-# The install script automatically picks the latest tag, so just include above for reference and
-# set update to true when needed
-betterlock_update=true
-
-# https://obsidian.md/download
-obsidian_update=false
-obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
-obsidian_file=$(basename "$obsidian_url")
 
 # https://github.com/neovim/neovim/releases
 # NOTE: Check the instructions as well as the tar URL in case they change
@@ -105,6 +95,8 @@ rustup_url="https://sh.rustup.rs"
 # Check that the script is being run properly
 #############################################
 
+# TODO: I'm not sure this logic is correct
+
 if [ -n "$SUDO_USER" ]; then
     echo "Running this script with sudo will cause pathing to break. Exiting..."
     exit 1
@@ -137,7 +129,15 @@ fi
 # Catchall Stuff
 ################
 
-export PATH=$PATH:$HOME/.local/bin
+local_dir="$HOME/.local"
+local_bin_dir="$HOME/.local/bin"
+
+# Not sure if I need this, but a useful code snippet
+# if [[ ":$PATH:" != *":/usr/local/bin:"* ]]; then
+#     export PATH=/usr/local/bin:$PATH
+# fi
+
+conf_dir="$HOME/.config"
 
 ##################
 # System Hardening
@@ -152,16 +152,18 @@ if $fresh_install; then
     sudo ufw logging on
     sudo ufw --force enable
 
-    [ ! -d "$HOME/.ssh" ] && mkdir -p "$HOME/.ssh"
-    chmod 700 "$HOME/.ssh"
+    ssh_dir="$HOME/.ssh"
+
+    [ ! -d "$ssh_dir" ] && mkdir -p "$ssh_dir"
+    chmod 700 "$ssh_dir"
 
     # FUTURE: There are settings that can be added as well to require stronger cryptography
-    cat << 'EOF' > ~/.ssh/config
+    cat << 'EOF' > "$ssh_dir/config"
 Host *
 ServerAliveInterval 60
 ServerAliveCountMax 30
 EOF
-    chmod 600 "$HOME/.ssh/config"
+    chmod 600 "$ssh_dir/config"
 fi
 
 
@@ -342,14 +344,15 @@ if $fresh_install; then
     sudo apt install -y gtk2-engines-murrine
     sudo apt install -y arc-theme
 
-    mkdir -p ~/.config/gtk-3.0
-    cat << EOF > ~/.config/gtk-3.0/settings.ini
+    gtk_config_dir="$conf_dir/gtk-3.0"
+    [ ! -d "$gtk_config_dir" ] && mkdir -p "$gtk_config_dir"
+    cat << EOF > "$gtk_config_dir/settings.ini"
 [Settings]
 gtk-theme-name=Arc-Dark
 gtk-application-prefer-dark-theme=1
 EOF
 
-    cat << EOF > ~/.gtkrc-2.0
+    cat << EOF > "$HOME/.gtkrc-2.0"
 gtk-theme-name="Arc-Dark"
 gtk-icon-theme-name="Adwaita"
 EOF
@@ -363,18 +366,21 @@ if $fresh_install; then
     sudo apt install -y redshift-gtk
     sudo systemctl disable geoclue
 
-    redshift_conf_dir="$HOME/.config"
-    [ ! -d "$redshift_conf_dir" ] && mkdir -p "$redshift_conf_dir"
-    redshift_conf="$redshift_conf_dir/redshift.conf"
+    [ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
+    redshift_conf_file="$conf_dir/redshift.conf"
 
-    echo "Checking/creating redshift conf dir"
-    if ! mkdir -p "$(dirname "$redshift_conf")"; then
-        echo "Unable to create directory $(dirname "$redshift_conf"). Check permissions"
-        exit 1
-    fi
+    # TODO: I have no idea what this is actually doing
+    # echo "Checking/creating redshift conf dir"
+    # if ! mkdir -p "$(dirname "$redshift_conf_file")"; then
+    #     echo "Unable to create directory $(dirname "$redshift_conf_file"). Check permissions"
+    #     exit 1
+    # fi
 
-    echo "Writing Redshift configuration to $redshift_conf..."
-    if cat << 'EOF' > "$redshift_conf"
+    # Day and night are both initially set for 6500k to make it more obvious when setting a low
+    # Kelvin value for testing
+    # lat and lon are set for zero to avoid dox
+    echo "Writing Redshift configuration to $redshift_conf_file..."
+    if cat << 'EOF' > "$redshift_conf_file"
 [redshift]
 #temp-day=6500
 #temp-night=4000
@@ -388,9 +394,9 @@ lat=00.0000
 lon=00.0000
 EOF
     then
-        echo "Successfully wrote to $redshift_conf."
+        echo "Successfully wrote to $redshift_conf_file"
     else
-        echo "Error: Failed to write to $redshift_conf."
+        echo "Error: Failed to write to $redshift_conf_file"
         exit 1
     fi
 fi
@@ -417,43 +423,43 @@ if $fresh_install; then
 
     pam_d_dir="/etc/pam.d"
     [ ! -d "$pam_d_dir" ] && mkdir -p "$pam_d_dir"
-    sudo cp "$HOME/.config/templates/login" "$pam_d_dir"
+    sudo cp "$conf_dir/templates/login" "$pam_d_dir"
 
-    chmod +x "$HOME/.config/polybar/launch-polybar"
-    chmod +x "$HOME/.local/bin/maim-script"
-    chmod +x "$HOME/.local/bin/rofi-scripts/rofi-power"
+    chmod +x "$conf_dir/polybar/launch-polybar"
+    chmod +x "$local_bin_dir/maim-script"
+    chmod +x "$local_bin_dir/rofi-scripts/rofi-power"
 fi
 
 
-###########
-# libsecret
-###########
+#############################
+# Gnome Keyring and libsecret
+#############################
 
-# This is installed to prevent Brave from trying to use KWallet
-# This is also installed to store git tokens
+# To store Git tokens and stop Brave from trying to use KWallet
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y gnome-keyring
     sudo apt install -y libsecret-tools
     sudo apt install -y libsecret-1-0
     sudo apt install -y libsecret-1-dev
-
 fi
 
 libsecret_path="/usr/share/doc/git/contrib/credential/libsecret"
-if $fresh_install || $libsecret_update; then
-    cd $libsecret_path
-    sudo make
+cd $libsecret_path
+sudo make
+cd "$HOME"
 
+if [[ "$fresh_install" == true ]] ; then
     git config --global credential.helper libsecret
-fi
-
-if $fresh_install; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$libsecret_path"
 EOF
 fi
+
+# Post-Install Steps:
+# - Verify that Brave opens without asking for a password to unlock the keyring
+# - Verify that you can store a git token
 
 ################
 # Window Manager
@@ -601,7 +607,7 @@ if $fresh_install; then
     sudo apt install -y libgif-dev
 fi
 
-i3_color_git_dir="$HOME/.local/bin/i3lock-color"
+i3_color_git_dir="$local_bin_dir/i3lock-color"
 if $fresh_install || $i3_color_update; then
     [ ! -d "$i3_color_git_dir" ] && mkdir -p "$i3_color_git_dir"
     cd "$i3_color_git_dir" || { echo "Error: Cannot cd to $i3_color_git_dir"; exit 1; }
@@ -639,7 +645,7 @@ if $fresh_install && $magick_update; then
     exit 1
 fi
 
-magick_git_dir="$HOME/.local/bin/magick"
+magick_git_dir="$local_bin_dir/magick"
 if $fresh_install || $magick_update; then
     [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
     cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
@@ -665,49 +671,84 @@ fi
 # betterlockscreen
 ##################
 
-if $fresh_install; then
+# https://github.com/betterlockscreen/betterlockscreen
+# Last Tag: 4.4.0
+# The install script automatically picks the latest tag, but it is noted here for reference
+# The URL is outlined for readability. If the install/update command needs changed, handle below
+bls_url="https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh"
+bls_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "bls" ]]; then
+        bls_update=true
+        echo "Updating betterlockscreen..."
+    fi
+done
+
+if [[ "$fresh_install" == true && "$bls_update" != true ]]; then
+    echo "Installing betterlockscreen..."
+fi
+
+if [[ "$fresh_install" == true ]]; then
     sudo apt install -y bc
     sudo apt install -y xautolock
 fi
 
-if $fresh_install || $betterlock_update; then
-    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
+# Note: The install script will fail if it fails to find any of the deps, including
+# i3lock-color and ImageMagick
+if [[ "$fresh_install" == true || "$bls_update" == true ]]; then
+    if [ -z "$bls_url" ]; then
+        echo "bls_url not set. Exiting..."
+        exit 1
+    fi
+    wget $bls_url -O - -q | bash -s user latest
 fi
 
-# if $fresh_install; then
-#     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
-# fi
+# Post-Install Checks:
+# - After running the wallpaper update command, lock the screen to verify it works
+# - When entering the password to unlock, verify the colors show correctly
 
-##################
-# Custom Apt Repos
-##################
+#########
+# Spotify
+#########
 
-if $fresh_install; then
-    sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-    echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
+# https://www.spotify.com/de-en/download/linux/
+# Check directions for updated key
+spotify_key="https://download.spotify.com/debian/pubkey_C85668DF69375001.gpg"
+spotify_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "spotify" ]]; then
+        spotify_update=true
+        echo "Updating Spotify key..."
+    fi
+done
+
+if [[ "$fresh_install" == true && "$spotify_update" != true ]]; then
+    echo "Installing Spotify..."
 fi
 
-if $fresh_install || $new_spotify_key; then
+if [[ "$fresh_install" == true ]]; then
+    spotify_repo="deb https://repository.spotify.com stable non-free"
+    echo "$spotify_repo" | sudo tee /etc/apt/sources.list.d/spotify.list
+fi
+
+if [[ "$fresh_install" == true || "$spotify_update" == true ]]; then
     sudo curl -sS $spotify_key | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg
     sudo apt update
-fi
 
-if $fresh_install; then
-    sudo apt install -y brave-browser
     sudo apt install -y spotify-client
 
     username="$USER"
-    spotify_prefs_dir="$HOME/.config/spotify/Users/${username}-user"
+    spotify_prefs_dir="$conf_dir/spotify/Users/${username}-user"
     [ ! -d "$spotify_prefs_dir" ] && mkdir -p "$spotify_prefs_dir"
     prefs_file="$spotify_prefs_dir/prefs"
+    spotify_ui_setting="ui.track_notifications_enabled=false"
 
     if [ -f "$prefs_file" ]; then
-        if grep -q "ui.track_notifications_enabled=false" "$prefs_file"; then
-            echo "The line 'ui.track_notifications_enabled=false' already exists in $prefs_file. Skipping..."
+        if grep -q "$spotify_ui_setting" "$prefs_file"; then
+            echo "The line '$spotify_ui_setting' already exists in $prefs_file. Skipping..."
         else
-            echo "Appending 'ui.track_notifications_enabled=false' to $prefs_file..."
-            echo "ui.track_notifications_enabled=false" >> "$prefs_file"
+            echo "Appending '$spotify_ui_setting' to $prefs_file..."
+            echo "$spotify_ui_setting" >> "$prefs_file"
         fi
     else
         echo "Creating $prefs_file and adding the configuration line..."
@@ -715,26 +756,38 @@ if $fresh_install; then
             echo "Error: Failed to create $prefs_file. Check permissions."
             exit 1
         fi
-        echo "ui.track_notifications_enabled=false" > "$prefs_file"
+        echo "$spotify_ui_setting" > "$prefs_file"
     fi
 
     echo "Spotify preferences updated successfully."
 fi
 
+# Post-install checks:
+# - Login to Spotify and verify it can play music
+# - Verify that the prefs file was created successfully
 
-###########
-# Dumb hack
-###########
+###############
+# Brave Browser
+###############
 
-sudo apt remove -y neovim
-bad_neovim_dir="$HOME/.config/neovim"
-if [ -d "$bad_neovim_dir" ]; then
-    rm -rf "$bad_neovim_dir"
+if [[ "$fresh_install" == true ]]; then
+    echo "Installing Brave..."
+
+    sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+    sudo apt install -y brave-browser
 fi
 
 ########
 # Neovim
 ########
+
+# Dumb hack
+sudo apt remove -y neovim
+bad_neovim_dir="$conf_dir/neovim"
+if [ -d "$bad_neovim_dir" ]; then
+    rm -rf "$bad_neovim_dir"
+fi
 
 nvim_root_dir="/opt"
 nvim_install_dir="$nvim_root_dir/nvim-linux-x86_64"
@@ -752,7 +805,7 @@ if $fresh_install || $nvim_update; then
         echo "No existing Nvim installation found at $nvim_install_dir"
     fi
 
-    nvim_tar_dir="$HOME/.local"
+    nvim_tar_dir="$local_dir"
     [ ! -d "$nvim_tar_dir" ] && mkdir -p "$nvim_tar_dir"
     curl -LO --output-dir "$nvim_tar_dir" "$nvim_url"
     sudo tar -C $nvim_root_dir -xzf "$nvim_tar_dir/$nvim_tar"
@@ -765,7 +818,7 @@ if $fresh_install; then
         exit 1
     fi
 
-    nvim_conf_dir="$HOME/.config/nvim"
+    nvim_conf_dir="$conf_dir/nvim"
     [ ! -d "$nvim_conf_dir" ] && mkdir -p "$nvim_conf_dir"
     git clone $nvim_config_repo "$nvim_conf_dir"
 
@@ -811,7 +864,7 @@ fi
 # Install Lua LS
 ################
 
-lua_ls_install_dir="$HOME/.local/bin/lua_ls"
+lua_ls_install_dir="$local_bin_dir/lua_ls"
 
 if $fresh_install || $lua_ls_update; then
     if [ -z "$lua_ls_url" ] || [ -z "$lua_ls_file" ] ; then
@@ -843,17 +896,36 @@ fi
 # Obsidian
 ##########
 
-if $fresh_install || $obsidian_update; then
+# https://obsidian.md/download
+obsidian_url="https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.9/obsidian_1.8.9_amd64.deb"
+obsidian_file=$(basename "$obsidian_url")
+
+obsidian_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "obsidian" ]]; then
+        obsidian_update=true
+        echo "Updating Obsidian..."
+    fi
+done
+
+if [[ "$fresh_install" == true && "$obsidian_update" != true ]]; then
+    echo "Installing Obsidian..."
+fi
+
+if [[ "$fresh_install" == true || "$obsidian_update" == true ]]; then
     if [ -z "$obsidian_url" ] || [ -z "$obsidian_file" ] ; then
         echo "Error: obsidian_url and obsidian_file must be set"
         exit 1
     fi
 
-    obsidian_deb_dir="$HOME/.local"
-    curl -LO --output-dir "$obsidian_deb_dir" "$obsidian_url"
-    sudo apt install -y "$obsidian_deb_dir/$obsidian_file"
-    rm "$obsidian_deb_dir/$obsidian_file"
+    curl -LO --output-dir "$local_dir" "$obsidian_url" || { echo "Obsidian curl failed"; exit 1; }
+    sudo apt install -y "$local_dir/$obsidian_file" || { echo "Unable to install Obsidian Deb file"; exit 1; }
+    rm "$local_dir/$obsidian_file" || { echo "Unable to delete Obsidian Deb file"; exit 1; }
 fi
+
+# Post-Install Checks:
+# - After moving the vault to the new system, make Obsidian open to it by default
+# - If using the Nvim Obsidian extension, make sure using the Obsidian Open command works
 
 ##################
 # Python Ecosystem
@@ -925,7 +997,7 @@ if $fresh_install || $go_update ; then
         echo "No existing Go installation found at $go_install_dir"
     fi
 
-    go_dl_dir="$HOME/.local"
+    go_dl_dir="$local_dir"
     wget -P "$go_dl_dir" "$go_dl_url"
     sudo tar -C /usr/local -xzf "$go_dl_dir/$go_tar"
     rm "$go_dl_dir/$go_tar"
@@ -970,7 +1042,7 @@ if $fresh_install || $discord_update; then
         exit 1
     fi
 
-    discord_dl_dir="$HOME/.local"
+    discord_dl_dir="$local_dir"
     [ ! -d "$discord_dl_dir" ] && mkdir -p "$discord_dl_dir"
 
     deb_file="$discord_dl_dir/discord_deb.deb"
@@ -1005,7 +1077,7 @@ fi
 ############
 
 if $fresh_install || $vbox_update; then
-    vbox_dl_dir="$HOME/.local"
+    vbox_dl_dir="$local_dir"
     [ ! -d "$vbox_dl_dir" ] && mkdir -p "$vbox_dl_dir"
 
     vbox_deb_file="$vbox_dl_dir/vbox_deb.deb"
@@ -1048,7 +1120,7 @@ if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
         exit 1
     fi
 
-    ghostty_dir="$HOME/.local/bin"
+    ghostty_dir="$local_bin_dir"
     [ ! -d "$ghostty_dir" ] && mkdir -p "$ghostty_dir"
     ghostty_file="$ghostty_dir/ghostty"
 
@@ -1076,7 +1148,7 @@ if $fresh_install && $tmux_update ; then
     exit 1
 fi
 
-tmux_git_dir="$HOME/.local/bin/tmux"
+tmux_git_dir="$local_bin_dir/tmux"
 [ ! -d "$tmux_git_dir" ] && mkdir -p "$tmux_git_dir"
 
 if $fresh_install ; then
@@ -1106,7 +1178,7 @@ export PATH="\$PATH:$tmux_git_dir"
 EOF
 fi
 
-tmux_plugins_dir="$HOME/.config/tmux/plugins"
+tmux_plugins_dir="$conf_dir/tmux/plugins"
 [ ! -d "$tmux_plugins_dir" ] && mkdir -p "$tmux_plugins_dir"
 tpm_dir="$tmux_plugins_dir/tpm"
 power_dir="$tmux_plugins_dir/tmux-power"

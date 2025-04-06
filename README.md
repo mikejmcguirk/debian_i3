@@ -1,4 +1,4 @@
-WIP
+# WIP
 
 ## General Notes
 
@@ -31,25 +31,16 @@ bash install.sh
 
 - When the script is finished, reboot as directed
 
-<!--Save the update script. Run that with sudo bash as needed-->
-
 ## Post Install Steps/Checks:
 
 - Open i3 with startx
-- Open a terminal and run the commands below:
+- Open a terminal and run the command below:
 
 ```bash
-cd "$HOME/.local/bin/magick"
-./configure
-make
-sudo make install
-sudo ldconfig /usr/local/lib
-wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
 betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 ```
 
-*NOTE: I am not sure what part of the process breaks, but the Magick install does not complete correctly when done from the script*
-
+- The comments in the install script contain the post-install checks
 - Verify qalculate is in dark mode
 - Pull in Wireguard configs
 - Test VLC
