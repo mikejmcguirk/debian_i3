@@ -48,7 +48,7 @@ wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/in
 betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 ```
 
-*NOTE: For reasons I am unsure of, the Magick install does not complete correctly when done from the script. I am not sure what part of the process is broken*
+*NOTE: I am not sure what part of the process breaks, but the Magick install does not complete correctly when done from the script*
 
 - Verify qalculate is in dark mode
 - Pull in Wireguard configs
