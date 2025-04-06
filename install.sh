@@ -653,10 +653,10 @@ fi
 
 if $fresh_install || $magick_update; then
     git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
-    # ./configure
-    # make
-    # sudo ldconfig /usr/local/lib
-    # sudo make install
+    ./configure
+    make
+    sudo make install
+    sudo ldconfig /usr/local/lib
 
     cd "$HOME"
 fi
@@ -670,9 +670,9 @@ if $fresh_install; then
     sudo apt install -y xautolock
 fi
 
-# if $fresh_install || $betterlock_update; then
-#     wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
-# fi
+if $fresh_install || $betterlock_update; then
+    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
+fi
 
 # if $fresh_install; then
 #     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
@@ -1132,6 +1132,13 @@ if $tmux_update; then
     cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
 
+#############
+# Apt Cleanup
+#############
+
+sudo apt autoremove -y
+sudo apt autoclean -y
+
 ################
 # Rust Ecosystem
 ################
@@ -1168,9 +1175,6 @@ fi
 #########
 # Wrap Up
 #########
-
-sudo apt autoremove -y
-sudo apt autoclean -y
 
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
 # sudo update-initramfs -u

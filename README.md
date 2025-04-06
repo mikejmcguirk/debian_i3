@@ -39,11 +39,11 @@ bash install.sh
 - Open a terminal and run the commands below:
 
 ```bash
-cd $HOME/.local/bin/magick
+cd "$HOME/.local/bin/magick"
 ./configure
 make
-sudo ldconfig /usr/local/lib
 sudo make install
+sudo ldconfig /usr/local/lib
 wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
 betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 ```
