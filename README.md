@@ -35,7 +35,8 @@ bash install.sh
 
 ## Post Install Steps/Checks:
 
-- Run the following commands manually before using startx for the first time:
+- Open i3 with startx
+- Open a terminal and run the commands below:
 
 ```bash
 cd $HOME/.local/bin/magick
@@ -44,10 +45,6 @@ make
 sudo ldconfig /usr/local/lib
 sudo make install
 wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
-```
-- Then run the following after entering i3:
-
-```bash
 betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 ```
 

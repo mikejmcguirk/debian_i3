@@ -174,14 +174,72 @@ fi
 # Looking at the output when running ghostty in the terminal, GTK errors show
 # This rules out using flameshot for screenshots
 
-#################################
-# Updates, Cleanup, and Libraries
-#################################
+############
+# Apt Basics
+############
 
 sudo apt update
 sudo apt upgrade -y
 sudo apt autoremove -y
 sudo apt autoclean -y
+
+####################
+# Network Connection
+####################
+
+sudo apt install -y network-manager
+
+sudo systemctl stop networking
+sudo systemctl stop systemd-networkd
+sudo systemctl disable networking
+sudo systemctl disable systemd-networkd
+
+if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
+    echo "Configuring NetworkManager to manage all devices..."
+    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' /etc/NetworkManager/NetworkManager.conf
+fi
+
+sudo systemctl enable NetworkManager
+sudo systemctl restart NetworkManager # Restart to pickup the re-written config
+
+echo "Available network devices:"
+nmcli device
+
+WIFI_DEVICE=$(nmcli device | grep wifi | awk '{print $1}' || true)
+if [ -n "$WIFI_DEVICE" ]; then
+    echo "Scanning for WiFi networks on $WIFI_DEVICE..."
+    nmcli device wifi list ifname "$WIFI_DEVICE"
+else
+    echo "No WiFi device detected."
+fi
+
+echo "Available devices from 'nmcli device':"
+nmcli device | awk 'NR>1 {print $1 " (" $2 ")"}'
+read -p "Enter the device name to connect (e.g., enp0s3 or wlan0): " DEVICE
+
+if nmcli device show "$DEVICE" | grep -q "GENERAL.TYPE:.*wifi"; then
+    echo "WiFi device selected: $DEVICE"
+    nmcli device wifi list ifname "$DEVICE"
+    read -p "Enter the SSID of the WiFi network: " SSID
+    read -s -p "Enter the password for '$SSID': " PASSWORD
+    echo
+    nmcli device wifi connect "$SSID" password "$PASSWORD" ifname "$DEVICE"
+else
+    echo "Wired/bridge device selected: $DEVICE"
+    nmcli device connect "$DEVICE"
+fi
+
+echo "Checking connectivity..."
+if ping -c 4 google.com >/dev/null 2>&1; then
+    echo "Network is up!"
+else
+    echo "Network failed. Check 'nmcli device' or logs with 'journalctl -u NetworkManager'."
+    exit 1
+fi
+
+#######################
+# Build Tools/Libraries
+#######################
 
 if $fresh_install; then
     sudo apt install -y build-essential
@@ -1105,60 +1163,6 @@ if $fresh_install ; then
     "$cargo_bin" install cargo-update
 else
     $cargo_bin install-update -a
-fi
-
-####################
-# Network Connection
-####################
-
-sudo apt install -y network-manager
-
-sudo systemctl stop networking
-sudo systemctl stop systemd-networkd
-sudo systemctl disable networking
-sudo systemctl disable systemd-networkd
-
-if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
-    echo "Configuring NetworkManager to manage all devices..."
-    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' /etc/NetworkManager/NetworkManager.conf
-fi
-
-sudo systemctl enable NetworkManager
-sudo systemctl restart NetworkManager # Restart to pickup the re-written config
-
-echo "Available network devices:"
-nmcli device
-
-WIFI_DEVICE=$(nmcli device | grep wifi | awk '{print $1}' || true)
-if [ -n "$WIFI_DEVICE" ]; then
-    echo "Scanning for WiFi networks on $WIFI_DEVICE..."
-    nmcli device wifi list ifname "$WIFI_DEVICE"
-else
-    echo "No WiFi device detected."
-fi
-
-echo "Available devices from 'nmcli device':"
-nmcli device | awk 'NR>1 {print $1 " (" $2 ")"}'
-read -p "Enter the device name to connect (e.g., enp0s3 or wlan0): " DEVICE
-
-if nmcli device show "$DEVICE" | grep -q "GENERAL.TYPE:.*wifi"; then
-    echo "WiFi device selected: $DEVICE"
-    nmcli device wifi list ifname "$DEVICE"
-    read -p "Enter the SSID of the WiFi network: " SSID
-    read -s -p "Enter the password for '$SSID': " PASSWORD
-    echo
-    nmcli device wifi connect "$SSID" password "$PASSWORD" ifname "$DEVICE"
-else
-    echo "Wired/bridge device selected: $DEVICE"
-    nmcli device connect "$DEVICE"
-fi
-
-echo "Checking connectivity..."
-if ping -c 4 google.com >/dev/null 2>&1; then
-    echo "Network is up!"
-else
-    echo "Network failed. Check 'nmcli device' or logs with 'journalctl -u NetworkManager'."
-    exit 1
 fi
 
 #########
