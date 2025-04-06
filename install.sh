@@ -603,7 +603,7 @@ fi
 #     cd "$HOME"
 # fi
 
-wget -O $magic_url "$HOME/.local/bin/magick"
+wget -O "$HOME/.local/bin/magick" $magic_url
 
 ##################
 # betterlockscreen
