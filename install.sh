@@ -576,34 +576,32 @@ fi
 # ImageMagick (betterlockscreen dep)
 ####################################
 
-# if $fresh_install && $magick_update; then
-#     echo "Cannot fresh install and update magick"
-#     exit 1
-# fi
-#
-# magick_git_dir="$HOME/.local/bin/magick"
-# if $fresh_install || $magick_update; then
-#     [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
-#     cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
-# fi
-#
-# if $fresh_install; then
-#     git clone $magick_repo "$magick_git_dir"
-# elif $magick_update; then
-#     git pull
-# fi
-#
-# if $fresh_install || $magick_update; then
-#     git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
-#     ./configure
-#     make
-#     sudo ldconfig /usr/local/lib
-#     sudo make install
-#
-#     cd "$HOME"
-# fi
+if $fresh_install && $magick_update; then
+    echo "Cannot fresh install and update magick"
+    exit 1
+fi
 
-wget -O "$HOME/.local/bin/magick" $magic_url
+magick_git_dir="$HOME/.local/bin/magick"
+if $fresh_install || $magick_update; then
+    [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
+    cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
+fi
+
+if $fresh_install; then
+    git clone $magick_repo "$magick_git_dir"
+elif $magick_update; then
+    git pull
+fi
+
+if $fresh_install || $magick_update; then
+    git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
+    # ./configure
+    # make
+    # sudo ldconfig /usr/local/lib
+    # sudo make install
+
+    cd "$HOME"
+fi
 
 ##################
 # betterlockscreen

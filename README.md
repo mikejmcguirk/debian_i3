@@ -30,7 +30,19 @@ Reboot as directed
 
 <!--Save the update script. Run that with sudo bash as needed-->
 
-Post Install Steps/Checks:
+## Post Install Steps/Checks:
+
+- Run the following commands manually:
+
+```bash
+cd $HOME/.local/bin/magick
+./configure
+make
+sudo ldconfig /usr/local/lib
+sudo make install
+```
+
+*NOTE: For reasons I am unsure of, the Magick install does not complete correctly when done from the script. I am not sure what part of the process breaks it*
 
 - Verify qalculate is in dark mode
 - Pull in Wireguard configs
