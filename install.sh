@@ -608,6 +608,8 @@ if $fresh_install || $betterlock_update; then
     wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | sudo bash -s user latest true
 fi
 
+export PATH=$PATH:$HOME/.local/bin
+
 if $fresh_install; then
     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
 fi
