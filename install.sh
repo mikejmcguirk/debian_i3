@@ -23,6 +23,8 @@ i3_color_update=false
 
 magick_repo="https://github.com/ImageMagick/ImageMagick"
 magick_tag="7.1.1-46"
+magic_url="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.1-47/ImageMagick-82572af-gcc-x86_64.AppImage"
+magick_file=$(basename "$magic_url")
 magick_update=false
 
 # https://github.com/betterlockscreen/betterlockscreen
@@ -130,6 +132,12 @@ fi
 if [[ "$choice" == "i" || "$choice" == "I" ]]; then
     fresh_install=true
 fi
+
+################
+# Catchall Stuff
+################
+
+export PATH=$PATH:$HOME/.local/bin
 
 ##################
 # System Hardening
@@ -568,32 +576,34 @@ fi
 # ImageMagick (betterlockscreen dep)
 ####################################
 
-if $fresh_install && $magick_update; then
-    echo "Cannot fresh install and update magick"
-    exit 1
-fi
+# if $fresh_install && $magick_update; then
+#     echo "Cannot fresh install and update magick"
+#     exit 1
+# fi
+#
+# magick_git_dir="$HOME/.local/bin/magick"
+# if $fresh_install || $magick_update; then
+#     [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
+#     cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
+# fi
+#
+# if $fresh_install; then
+#     git clone $magick_repo "$magick_git_dir"
+# elif $magick_update; then
+#     git pull
+# fi
+#
+# if $fresh_install || $magick_update; then
+#     git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
+#     ./configure
+#     make
+#     sudo ldconfig /usr/local/lib
+#     sudo make install
+#
+#     cd "$HOME"
+# fi
 
-magick_git_dir="$HOME/.local/bin/magick"
-if $fresh_install || $magick_update; then
-    [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
-    cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
-fi
-
-if $fresh_install; then
-    git clone $magick_repo "$magick_git_dir"
-elif $magick_update; then
-    git pull
-fi
-
-if $fresh_install || $magick_update; then
-    git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
-    ./configure
-    make
-    sudo ldconfig /usr/local/lib
-    sudo make install
-
-    cd "$HOME"
-fi
+wget -O $magic_url "$HOME/.local/bin/magick"
 
 ##################
 # betterlockscreen
@@ -605,10 +615,8 @@ if $fresh_install; then
 fi
 
 if $fresh_install || $betterlock_update; then
-    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | sudo bash -s user latest true
+    wget https://raw.githubusercontent.com/betterlockscreen/betterlockscreen/main/install.sh -O - -q | bash -s user latest
 fi
-
-export PATH=$PATH:$HOME/.local/bin
 
 if $fresh_install; then
     betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-someday.jpg" --fx dim
