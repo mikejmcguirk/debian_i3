@@ -11,41 +11,6 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 # Because the script runs in user context rather than root context, kernel updates might not
 # install
 
-###################
-# Declare variables
-###################
-
-
-
-tmux_update=false
-tmux_url="https://github.com/tmux/tmux"
-tmux_branch="tmux-3.5a"
-tpm_repo="https://github.com/tmux-plugins/tpm"
-tmux_power_repo="https://github.com/wfxr/tmux-power"
-
-# https://github.com/neovim/neovim/releases
-ghostty_update=false
-ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
-
-# https://www.nerdfonts.com/font-downloads
-nerd_font_update=false
-nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
-nerd_font_filename=$(basename "$nerd_font_url")
-
-discord_update=false
-discord_url="https://discord.com/api/download?platform=linux&format=deb"
-
-# https://www.virtualbox.org/wiki/Linux_Downloads
-vbox_update=false
-vbox_url="https://download.virtualbox.org/virtualbox/7.1.6/virtualbox-7.1_7.1.6-167084~Debian~bookworm_amd64.deb"
-
-dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
-
-# Rust URL
-# Check curl cmd as well
-rustup_update=false
-rustup_url="https://sh.rustup.rs"
-
 #############################################
 # Check that the script is being run properly
 #############################################
@@ -359,6 +324,8 @@ fi
 ##############
 # Get Dotfiles
 ##############
+
+dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
 
 if $fresh_install; then
     if [ -z "$dotfiles_url" ] ; then
@@ -972,7 +939,7 @@ fi
 # Python Ecosystem
 ##################
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     sudo apt install -y python3-full
     sudo apt install -y python3-pip
     sudo apt install -y pipx
@@ -1050,6 +1017,10 @@ for arg in "$@"; do
     fi
 done
 
+if [ "$fresh_install" = true ] && [ "$go_update" != true ]; then
+    echo "Installing Go..."
+fi
+
 go_install_dir="/usr/local/go"
 
 if [[ "$fresh_install" == true || "$go_update" == true ]]; then
@@ -1124,7 +1095,22 @@ fi
 # Discord
 #########
 
-if $fresh_install || $discord_update; then
+discord_url="https://discord.com/api/download?platform=linux&format=deb"
+discord_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "discord" ]]; then
+        discord_update=true
+        echo "Updating Discord..."
+
+        break
+    fi
+done
+
+if [ "$fresh_install" = true ] && [ "$discord_update" != true ]; then
+    echo "Installing Discord..."
+fi
+
+if [[ "$fresh_install" == true || "$discord_update" == true ]]; then
     if [ -z "$discord_url" ] ; then
         echo "Error: discord_url must be set."
         exit 1
@@ -1135,9 +1121,6 @@ if $fresh_install || $discord_update; then
 
     deb_file="$discord_dl_dir/discord_deb.deb"
     echo "Downloading Discord .deb from $discord_url..."
-    # curl -L -o "$deb_file" "$discord_url" || {
-    #     echo "Error: Download failed."
-    # }
 
     if ! curl -L -o "$deb_file" "$discord_url"; then
         echo "Unable to download Discord .deb, continuing..."
@@ -1164,7 +1147,23 @@ fi
 # VirtualBox
 ############
 
-if $fresh_install || $vbox_update; then
+# https://www.virtualbox.org/wiki/Linux_Downloads
+vbox_url="https://download.virtualbox.org/virtualbox/7.1.6/virtualbox-7.1_7.1.6-167084~Debian~bookworm_amd64.deb"
+vbox_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "vbox" ]]; then
+        vbox_update=true
+        echo "Updating Vbox..."
+
+        break
+    fi
+done
+
+if [[ "$fresh_install" == true || "$vbox_update" != true ]]; then
+    echo "Installing VirtualBox..."
+fi
+
+if [[ "$fresh_install" == true || "$vbox_update" == true ]]; then
     vbox_dl_dir="$local_dir"
     [ ! -d "$vbox_dl_dir" ] && mkdir -p "$vbox_dl_dir"
 
@@ -1183,10 +1182,28 @@ fi
 # Add Nerd Font
 ###############
 
-fonts_dir="$HOME/.fonts"
-[ ! -d "$fonts_dir" ] && mkdir -p "$fonts_dir"
+# https://www.nerdfonts.com/font-downloads
+nerd_font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Cousine.zip"
+nerd_font_filename=$(basename "$nerd_font_url")
 
-if $fresh_install || $nerd_font_update; then
+nerd_font_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "nerd_font" ]]; then
+        nerd_font_update=true
+        echo "Updating Nerd Font..."
+
+        break
+    fi
+done
+
+if [[ "$fresh_install" == true || "$nerd_font_update" != true ]]; then
+    echo "Installing Nerd Font..."
+fi
+
+if [[ "$fresh_install" == true || "$nerd_font_update" == true ]]; then
+    fonts_dir="$HOME/.fonts"
+    [ ! -d "$fonts_dir" ] && mkdir -p "$fonts_dir"
+
     if [ -z "$nerd_font_url" ] ; then
         echo "Error: nerd_font_url must be set."
         exit 1
@@ -1201,6 +1218,24 @@ fi
 #########
 # Ghostty
 #########
+
+# TODO: If GTK is up-to-date enough on Debian 12, change this to building from source
+
+# https://github.com/neovim/neovim/releases
+ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
+ghostty_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "ghostty" ]]; then
+        ghostty_update=true
+        echo "Updating Ghostty..."
+
+        break
+    fi
+done
+
+if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
+    echo "Installing Ghostty..."
+fi
 
 if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     if [ -z "$ghostty_url" ]; then
@@ -1225,41 +1260,57 @@ fi
 # Tmux
 ######
 
+tmux_url="https://github.com/tmux/tmux"
+tmux_branch="tmux-3.5a"
+tpm_repo="https://github.com/tmux-plugins/tpm"
+tmux_power_repo="https://github.com/wfxr/tmux-power"
+
 if [ -z "$tmux_url" ] || [ -z "$tmux_branch" ] ; then
     echo "Error: tmux_url and tmux_branch must be set"
     exit 1
 fi
 
-# FUTURE: The logic should be improved to just handle this case
-if $fresh_install && $tmux_update ; then
-    echo "Cannot do a fresh install and a tmux update at the same time"
-    exit 1
+tmux_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "tmux" ]]; then
+        if [[ "$fresh_install" == true ]]; then
+            echo "Cannot do a fresh install and a tmux update at the same time"
+            exit 1
+        fi
+
+        tmux_update=true
+        echo "Updating tmux..."
+        break
+    fi
+done
+if [ "$fresh_install" = true ] && [ "$tmux_update" != true ]; then
+    echo "Installing tmux..."
 fi
 
 tmux_git_dir="$local_bin_dir/tmux"
 [ ! -d "$tmux_git_dir" ] && mkdir -p "$tmux_git_dir"
 
-if $fresh_install ; then
+if [[ "$fresh_install" == true ]]; then
     git clone $tmux_url "$tmux_git_dir"
 fi
 
 cd "$tmux_git_dir" || { echo "Error: Cannot cd to $tmux_git_dir"; exit 1; }
 
-if $tmux_update ; then
+if [[ "$tmux_update" == true ]]; then
     git pull
 fi
 
-if $fresh_install || $tmux_update ; then
+if [ "$fresh_install" = true ] || [ "$tmux_update" = true ]; then
     git checkout "$tmux_branch" || { echo "Error: Cannot checkout $tmux_branch"; exit 1; }
     sh autogen.sh
-    # Makes into the download folder, so don't delete
     ./configure && make
 
     echo "tmux build complete"
-    cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
 
-if $fresh_install; then
+cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
+
+if [[ "$fresh_install" == true ]]; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$tmux_git_dir"
@@ -1271,26 +1322,27 @@ tmux_plugins_dir="$conf_dir/tmux/plugins"
 tpm_dir="$tmux_plugins_dir/tpm"
 power_dir="$tmux_plugins_dir/tmux-power"
 
-if $fresh_install || $tmux_update ; then
+if [ "$fresh_install" = true ] || [ "$tmux_update" = true ]; then
     if  [ -z "$tpm_repo" ] || [ -z $tmux_power_repo ]; then
         echo "Error: tpm_repo and tmux_power_repo must be set"
         exit 1
     fi
 fi
 
-if $fresh_install; then
-    # tmux list-keys to see where the binding looks to run the script to install
-    # Should be prefix-I
+if [[ "$fresh_install" == true ]]; then
     git clone $tpm_repo "$tpm_dir"
     git clone $tmux_power_repo "$power_dir"
 fi
 
 # FUTURE: Can't the plugin manager just handle this?
-if $tmux_update; then
-    cd "$power_dir" || { echo "Error: Cannot cd to $tmux_git_dir"; exit 1; }
+if [[ "$tmux_update" == true ]]; then
+    cd "$power_dir" || { echo "Error: Cannot cd to $power_dir"; exit 1; }
     git pull
     cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
+
+# Post-Install Steps:
+# - Open tmux and use prefix+I to load plugins
 
 #############
 # Apt Cleanup
@@ -1306,7 +1358,28 @@ sudo apt autoclean -y
 # Rust is added last because it takes the longest (insert Rust comp times meme here)
 # If you do this in the middle of the install, the sudo "session" actually times out
 
-if $fresh_install || $rustup_update ; then
+# Rust URL
+# Check curl cmd as well
+rustup_url="https://sh.rustup.rs"
+rustup_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "rustup" ]]; then
+        if [[ "$fresh_install" == true ]]; then
+            echo "Cannot do a fresh install and a rustup update at the same time"
+            exit 1
+        fi
+
+        rustup_update=true
+        echo "Updating rustup..."
+        break
+    fi
+done
+if [ "$fresh_install" = true ] && [ "$rustup_update" != true ]; then
+    echo "Installing rustup..."
+fi
+
+
+if [ "$fresh_install" = true ] || [ "$rustup_update" = true ]; then
     if  [ -z "$rustup_url" ] ; then
         echo "Error: rustup_url must be set"
         exit 1
