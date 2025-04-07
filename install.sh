@@ -15,52 +15,7 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 # Declare variables
 ###################
 
-# FUTURE: It would be better for the update flags to be handled through args
-# That way, you don't need to do post-run cleanup
 
-
-i3_color_repo="https://github.com/Raymo111/i3lock-color"
-i3_color_tag="2.13.c.5"
-i3_color_update=false
-
-# Last tag: 7.1.1-46
-magick_repo="https://github.com/ImageMagick/ImageMagick"
-magick_tag="7.1.1-46"
-magick_update=false
-
-# https://github.com/neovim/neovim/releases
-# NOTE: Check the instructions as well as the tar URL in case they change
-nvim_update=false
-nvim_url="https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-linux-x86_64.tar.gz"
-nvim_tar=$(basename "$nvim_url")
-nvim_config_repo="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
-
-# https://github.com/aristocratos/btop
-btop_update=false
-btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86_64-linux-musl.tbz"
-btop_file=$(basename "$btop_url")
-
-# https://github.com/LuaLS/lua-language-server
-lua_ls_update=false
-lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
-lua_ls_file=$(basename "$lua_ls_url")
-
-# https://github.com/nvm-sh/nvm
-# Check where this is used to make sure install cmd is still up-to-date
-nvm_update=false
-nvm_install_url="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh"
-
-# https://go.dev/doc/install
-go_update=false
-go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
-go_tar=$(basename "$go_dl_url")
-
-# https://golangci-lint.run/welcome/install/#local-installation
-# NOTE: Because the full cmd relies on go env GOPATH, we cannot declare it here
-# Check the full curl|sh command on the website relative to what I have below
-go_lint_update=false
-go_lint_url="https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh"
-go_lint_dir="bin v1.64.7"
 
 tmux_update=false
 tmux_url="https://github.com/tmux/tmux"
@@ -576,15 +531,34 @@ fi
 # i3lock-color
 ##############
 
-if $fresh_install && $i3_color_update; then
-    echo "Cannot fresh install and update i3_color"
+# Installed as a dep for betterlockscreen
+
+i3lock_repo="https://github.com/Raymo111/i3lock-color"
+i3lock_tag="2.13.c.5"
+
+i3lock_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "i3lock" ]]; then
+        i3lock_update=true
+        echo "Updating i3lock-color..."
+
+        break
+    fi
+done
+
+if [[ "$fresh_install" == true && "$i3lock_update" == true ]]; then
+    echo "Cannot fresh install and update i3lock-color"
     exit 1
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true && "$i3lock_update" != true ]]; then
+    echo "Installing i3lock-color..."
+fi
+
+if [ "$fresh_install" == true ]; then
     sudo apt remove -y i3lock
 
-    # i3lock-color deps
+    # deps
     sudo apt install -y autoconf
     sudo apt install -y gcc
     sudo apt install -y make
@@ -608,22 +582,22 @@ if $fresh_install; then
 fi
 
 i3_color_git_dir="$local_bin_dir/i3lock-color"
-if $fresh_install || $i3_color_update; then
+if [[ "$fresh_install" == true || "$i3lock_update" == true ]]; then
     [ ! -d "$i3_color_git_dir" ] && mkdir -p "$i3_color_git_dir"
     cd "$i3_color_git_dir" || { echo "Error: Cannot cd to $i3_color_git_dir"; exit 1; }
 fi
 
-if $fresh_install; then
-    git clone $i3_color_repo "$i3_color_git_dir"
-elif $i3_color_update; then
+if [ "$fresh_install" == true ]; then
+    git clone "$i3lock_repo" "$i3_color_git_dir"
+elif [ "$i3lock_update" == true ]; then
     git pull
 fi
 
 i3_color_build_dir="$i3_color_git_dir/build"
-if $fresh_install || $i3_color_update; then
-    git checkout "$i3_color_tag" || { echo "Error: Cannot checkout $i3_color_tag"; exit 1; }
+if [[ "$fresh_install" == true || "$i3lock_update" == true ]]; then
+    git checkout "$i3lock_tag" || { echo "Error: Cannot checkout $i3lock_tag"; exit 1; }
     ./install-i3lock-color.sh
-    # betterlockscreen requirement
+    # for betterlockscreen
     mv "$i3_color_build_dir/i3lock" "$i3_color_build_dir/i3lock-color"
 
     cd "$HOME"
@@ -640,24 +614,37 @@ fi
 # ImageMagick (betterlockscreen dep)
 ####################################
 
-if $fresh_install && $magick_update; then
+# Last tag: 7.1.1-46
+magick_repo="https://github.com/ImageMagick/ImageMagick"
+magick_tag="7.1.1-46"
+magick_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "magick" ]]; then
+        magick_update=true
+        echo "Updating ImageMagick..."
+
+        break
+    fi
+done
+
+if [[ "$fresh_install" == true && "$magick_update" == true ]]; then
     echo "Cannot fresh install and update magick"
     exit 1
 fi
 
 magick_git_dir="$local_bin_dir/magick"
-if $fresh_install || $magick_update; then
+if [[ "$fresh_install" == true || "$magick_update" == true ]]; then
     [ ! -d "$magick_git_dir" ] && mkdir -p "$magick_git_dir"
     cd "$magick_git_dir" || { echo "Error: Cannot cd to $magick_git_dir"; exit 1; }
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     git clone $magick_repo "$magick_git_dir"
-elif $magick_update; then
+elif [[ "$magick_update" == true ]]; then
     git pull
 fi
 
-if $fresh_install || $magick_update; then
+if [[ "$fresh_install" == true || "$magick_update" == true ]]; then
     git checkout "$magick_tag" || { echo "Error: Cannot checkout $magick_tag"; exit 1; }
     ./configure
     make
@@ -681,6 +668,8 @@ for arg in "$@"; do
     if [[ "$arg" == "bls" ]]; then
         bls_update=true
         echo "Updating betterlockscreen..."
+
+        break
     fi
 done
 
@@ -719,6 +708,8 @@ for arg in "$@"; do
     if [[ "$arg" == "spotify" ]]; then
         spotify_update=true
         echo "Updating Spotify key..."
+
+        break
     fi
 done
 
@@ -782,6 +773,8 @@ fi
 # Neovim
 ########
 
+# TODO: I think this is needed because of the neovim-python installation
+# Confirm that. Do I really need that installation?
 # Dumb hack
 sudo apt remove -y neovim
 bad_neovim_dir="$conf_dir/neovim"
@@ -789,10 +782,26 @@ if [ -d "$bad_neovim_dir" ]; then
     rm -rf "$bad_neovim_dir"
 fi
 
+# https://github.com/neovim/neovim/releases
+# NOTE: Check the instructions as well as the tar URL in case they change
+nvim_url="https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-linux-x86_64.tar.gz"
+nvim_tar=$(basename "$nvim_url")
+nvim_config_repo="https://github.com/mikejmcguirk/Neovim-Win10-Lazy"
+
+nvim_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "nvim" ]]; then
+        nvim_update=true
+        echo "Updating Nvim..."
+
+        break
+    fi
+done
+
 nvim_root_dir="/opt"
 nvim_install_dir="$nvim_root_dir/nvim-linux-x86_64"
 
-if $fresh_install || $nvim_update; then
+if [[ "$fresh_install" == true || "$nvim_update" == true ]]; then
     if [ -z "$nvim_url" ] || [ -z "$nvim_tar" ] ; then
         echo "Error: nvim_url and nvim_tar must be set"
         exit 1
@@ -807,12 +816,13 @@ if $fresh_install || $nvim_update; then
 
     nvim_tar_dir="$local_dir"
     [ ! -d "$nvim_tar_dir" ] && mkdir -p "$nvim_tar_dir"
+
     curl -LO --output-dir "$nvim_tar_dir" "$nvim_url"
     sudo tar -C $nvim_root_dir -xzf "$nvim_tar_dir/$nvim_tar"
     rm "$nvim_tar_dir/$nvim_tar"
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     if [ -z "$nvim_config_repo" ] ; then
         echo "No Nvim config repo to clone. Exiting..."
         exit 1
@@ -820,6 +830,7 @@ if $fresh_install; then
 
     nvim_conf_dir="$conf_dir/nvim"
     [ ! -d "$nvim_conf_dir" ] && mkdir -p "$nvim_conf_dir"
+
     git clone $nvim_config_repo "$nvim_conf_dir"
 
     cat << EOF >> "$HOME/.bashrc"
@@ -832,9 +843,23 @@ fi
 # Btop
 ######
 
+# https://github.com/aristocratos/btop
+btop_url="https://github.com/aristocratos/btop/releases/download/v1.4.0/btop-x86_64-linux-musl.tbz"
+btop_file=$(basename "$btop_url")
+
+btop_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "btop" ]]; then
+        btop_update=true
+        echo "Updating Btop..."
+
+        break
+    fi
+done
+
 btop_install_dir="/opt/btop"
 
-if $fresh_install || $btop_update; then
+if [[ "$fresh_install" == true || "$btop_update" == true ]]; then
     if [ -z "$btop_url" ] || [ -z "$btop_file" ] ; then
         echo "Error: btop_url and btop_file must be set"
         exit 1
@@ -853,7 +878,7 @@ if $fresh_install || $btop_update; then
     sudo rm "/opt/$btop_file"
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$btop_install_dir/bin"
@@ -864,9 +889,23 @@ fi
 # Install Lua LS
 ################
 
+# https://github.com/LuaLS/lua-language-server
+lua_ls_url="https://github.com/LuaLS/lua-language-server/releases/download/3.13.9/lua-language-server-3.13.9-linux-x64.tar.gz"
+lua_ls_file=$(basename "$lua_ls_url")
+
+lua_ls_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "lua_ls" ]]; then
+        lua_ls_update=true
+        echo "Updating Lua LS..."
+
+        break
+    fi
+done
+
 lua_ls_install_dir="$local_bin_dir/lua_ls"
 
-if $fresh_install || $lua_ls_update; then
+if [[ "$fresh_install" == true || "$lua_ls_update" == true ]]; then
     if [ -z "$lua_ls_url" ] || [ -z "$lua_ls_file" ] ; then
         echo "Error: lua_ls_url and lua_ls_file must be set"
         exit 1
@@ -879,13 +918,13 @@ if $fresh_install || $lua_ls_update; then
         echo "No existing lua_ls installation found at $lua_ls_install_dir"
     fi
 
-    # This tar file unpacks in the same directory it's in
+    # Files are in the top level of the tar
     wget -P "$lua_ls_install_dir" $lua_ls_url
     tar xzf "$lua_ls_install_dir/$lua_ls_file" -C "$lua_ls_install_dir"
     rm "$lua_ls_install_dir/$lua_ls_file"
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$lua_ls_install_dir/bin"
@@ -905,6 +944,8 @@ for arg in "$@"; do
     if [[ "$arg" == "obsidian" ]]; then
         obsidian_update=true
         echo "Updating Obsidian..."
+
+        break
     fi
 done
 
@@ -953,7 +994,20 @@ fi
 # Javascript Ecosystem
 ######################
 
-if $fresh_install || $nvm_update; then
+# https://github.com/nvm-sh/nvm
+# Check that the install cmd is up to date as well
+nvm_install_url="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh"
+nvm_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "nvm" ]]; then
+        nvm_update=true
+        echo "Updating Nvm..."
+
+        break
+    fi
+done
+
+if [[ "$fresh_install" == true || "$nvm_update" == true ]]; then
     if [ -z "$nvm_install_url" ] ; then
         echo "nvim_install_url must be set"
         exit 1
@@ -982,9 +1036,23 @@ npm i -g "bash-language-server"@latest
 # Go Ecosystem
 ##############
 
+# https://go.dev/doc/install
+go_dl_url="https://go.dev/dl/go1.24.1.linux-amd64.tar.gz"
+go_tar=$(basename "$go_dl_url")
+
+go_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "go" ]]; then
+        go_update=true
+        echo "Updating Go..."
+
+        break
+    fi
+done
+
 go_install_dir="/usr/local/go"
 
-if $fresh_install || $go_update ; then
+if [[ "$fresh_install" == true || "$go_update" == true ]]; then
     if [ -z "$go_dl_url" ] || [ -z "$go_tar" ]; then
         echo "Error: go_dl_url and go_tar must be set."
         exit 1
@@ -1008,7 +1076,7 @@ export PATH=$PATH:$go_install_bin
 export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$GOPATH/bin
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]]; then
     echo "Adding Go paths to $HOME/.bashrc..."
     cat << EOF >> "$HOME/.bashrc"
 
@@ -1022,6 +1090,26 @@ fi
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/gopls@latest
 go install github.com/nametake/golangci-lint-langserver@latest
+
+# https://golangci-lint.run/welcome/install/#local-installation
+# NOTE: Because the full cmd relies on go env GOPATH, we cannot declare it here
+# Check the full curl|sh command on the website relative to what I have below
+go_lint_url="https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh"
+go_lint_dir="bin v1.64.7"
+
+go_lint_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "go_lint" ]]; then
+        go_lint_update=true
+        echo "Updating Go Lint..."
+
+        break
+    fi
+done
+
+if [ "$fresh_install" = true ] && [ "$go_lint_update" != true ]; then
+    echo "Installing Go Lint..."
+fi
 
 if [ "$fresh_install" = true ] || [ "$go_lint_update" = true ]; then
     if [ -z "$go_lint_url" ] || [ -z "$go_lint_dir" ]; then
