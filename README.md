@@ -41,58 +41,12 @@ betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-som
 ```
 
 - The comments in the install script contain the post-install checks
-- Verify qalculate is in dark mode
-- Pull in Wireguard configs
-- Test VLC
-- Setup qbittorrent in GUI
-- Fix Redshift config and test
-- Brave
-  - Verify no errors when opening in terminal
-  - Configure default pages
-  - Add bookmarks
-  - Disable ctrl+w/ctrl+W keys (might need Shortkeys)
-  - Extensions:
-    - Dark reader
-    - Return Youtube dislike
-    - Youtube non-stop
-    - 7TV
-    - Onetab
-- Edit GUI Spotify settings
-- Test that config pathing works
-- Setup Github token
-- Nvim
-  - Run ``which nvim`` to verify the right path is being seen
-  - Run nvim to pull in plugins
-  - Verify the LSP/formatter/linter work for the following:
-    - lua
-    - bash
-    - python
-    - Javascript
-    - html
-    - css
-    - go
-    - rust
-    - toml
-- Check btop
-- Obsidian
-  - Make sure app works
-  - Import vault and make sure it loads
-  - Test that Nvim integration (screencaps, renames, Obsidian open) works
-- Check nvitop
-- Verify Discord works (including audio)
-- ghostty should open with mod+enter in i3 with Cousine Nerd Font
-- Enter tmux, use prefix-I to download plugins
-- Setup backup jobs
-- Adjust mouse speed/acceleration
-- Rust
-  - Make sure cargo flamegraph --release works
-  - Test tokei and rg
-- Thunar
-  - Verify dark mode
-  - Do an open with > image viewer to set that default
-- While this script does install rsync, it does not contain automation for file backups. You will need to set that up manually
 
-Known Issues:
+- The following steps need to be completed manually:
+  - Setup backup jobs
+  - Adjust mouse speed/acceleration
+
+## Known Issues:
 
 - Brave might not be able to access the keyring properly on the first login. This should be fixed after another restart. Run Brave from the terminal to see if this is occurring
 

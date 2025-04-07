@@ -6,16 +6,9 @@ cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
 # NOTE: Any program that needs to be manually updated should have an associated variable with
 # "_update" in the name for easier search/grep
 
-# TODO: Note somewhere/somehow that sudo apt update/upgrade/autoremove/autoclean should be
-# run manually in order to make sure that all updates are run
-# Because the script runs in user context rather than root context, kernel updates might not
-# install
-
 #############################################
 # Check that the script is being run properly
 #############################################
-
-# TODO: I'm not sure this logic is correct
 
 if [ -n "$SUDO_USER" ]; then
     echo "Running this script with sudo will cause pathing to break. Exiting..."
@@ -33,9 +26,14 @@ fi
 
 fresh_install=false
 
+echo "Install script for Debian 12 i3 startx system"
+echo "Note: Make sure to run apt update, upgrade, autoremove, and autoclean separately with sudo"
+echo "This might be necessary to make kernel updates install"
+echo ""
+
 echo "Target home directory: $HOME"
-echo "Fresh install, update, or quit?"
-read -p "Continue? (i/u/q): " choice
+read -p "Fresh install, update, or quit? (i/u/q): " choice
+
 if [[ "$choice" != "i" && "$choice" != "I" && "$choice" != "u" && "$choice" != "U" ]]; then
     echo "Exiting."
     exit 0
@@ -51,29 +49,26 @@ fi
 
 local_dir="$HOME/.local"
 local_bin_dir="$HOME/.local/bin"
+conf_dir="$HOME/.config"
 
 # Not sure if I need this, but a useful code snippet
 # if [[ ":$PATH:" != *":/usr/local/bin:"* ]]; then
 #     export PATH=/usr/local/bin:$PATH
 # fi
 
-conf_dir="$HOME/.config"
-
 ##################
 # System Hardening
 ##################
 
-if $fresh_install; then
-    # sudo passwd -l root # disable root login with a password. Reverse with passwd -u root
-
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y ufw
+
     sudo ufw default deny incoming # Should be default, but let's be sure
     sudo ufw default allow outgoing # Also should be default
     sudo ufw logging on
     sudo ufw --force enable
 
     ssh_dir="$HOME/.ssh"
-
     [ ! -d "$ssh_dir" ] && mkdir -p "$ssh_dir"
     chmod 700 "$ssh_dir"
 
@@ -87,23 +82,12 @@ EOF
 fi
 
 
-################
-# **** NOTE ****
-################
-
-# Do not install, directly or as a dependency, xdg-desktop-portal-gtk
-# This causes ghostty to take 15+ seconds to load
-# Looking at the output when running ghostty in the terminal, GTK errors show
-# This rules out using flameshot for screenshots
-
 ############
 # Apt Basics
 ############
 
 sudo apt update
 sudo apt upgrade -y
-sudo apt autoremove -y
-sudo apt autoclean -y
 
 ####################
 # Network Connection
@@ -163,21 +147,23 @@ fi
 # Build Tools/Libraries
 #######################
 
-if $fresh_install; then
+# These installs are kept up here because so many different things can depend on them
+
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y build-essential
     sudo apt install -y bison # tmux build dep
     sudo apt install -y ncurses-dev # tmux build dep
     sudo apt install -y libevent-dev # tmux build dep
     sudo apt install -y pkg-config # For cargo updater
     sudo apt install -y libssl-dev # For cargo updater
-    sudo apt install -y python3-neovim
+    # sudo apt install -y python3-neovim
 fi
 
 ###########
 # Utilities
 ###########
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y curl
     sudo apt install -y xclip # For copy/paste out of Neovim
     sudo apt install -y fd-find
@@ -201,26 +187,39 @@ if $fresh_install; then
 
     systemctl --user start dconf.service
     # When you run this with the ghostty appimage open, the appimage environment breaks
-    # The path to the linux .so files this relies on
+    # the path to the linux .so files this relies on
     # Just run it now since everything should be dark mode anyway
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 fi
+
+# Post-install steps:
+# - Verify that copy/paste works in Nvim
+# - Verify that the tmux windowizer works
+# - Check that qalculate is in Dark mode
+# - Verify that gnome-disks is in dark mode and can detect all drives
+# - Setup rsync backups
+# - Test maim screenshot hotkey
+# - Verify you can do a cargo flamegraph with rust
 
 ###########
 # Dev Tools
 ###########
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y shellcheck
     sudo apt install -y llvm
 fi
+
+# Post-install steps:
+# - Verify in Nvim that shellcheck works
 
 #####
 # Git
 #####
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y git-all
+
     git config --global user.name "Mike J. McGuirk"
     git config --global user.email "mike.j.mcguirk@gmail.com"
     # Rebase can do goofy stuff
@@ -231,29 +230,22 @@ fi
 # Wireguard
 ###########
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y wireguard
     sudo apt install -y openresolv
     sudo apt install -y natpmpc
-
-    natpmpc_file="$HOME/wireguard.txt"
-    echo "Writing natpmpc loop to $natpmpc_file..."
-    if cat << 'EOF' > "$natpmpc_file"
-while true ; do date ; natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1 || { echo -e "ERROR with natpmpc command \a" ; break ; } ; sleep 45 ; done
-EOF
-    then
-        echo "Successfully wrote to $natpmpc_file."
-    else
-        echo "Error: Failed to write to $natpmpc_file."
-        exit 1
-    fi
 fi
+
+# TODO: Note where wireguard files actually go
+
+# Post-install steps:
+# - Configure Wireguard files
 
 ##################
 # General Programs
 ##################
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y vlc
     sudo apt install -y hexchat
     sudo apt install -y libreoffice
@@ -278,23 +270,22 @@ gtk-icon-theme-name="Adwaita"
 EOF
 fi
 
+# Post-Install steps:
+# - Verify VLC players audio and video
+# - Verify Thunar is in dark mode
+# - Do open with > image viewer in Thunar to set default option
+# - Configure qbittorrent
+
 ##########
 # Redshift
 ##########
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y redshift-gtk
     sudo systemctl disable geoclue
 
     [ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
     redshift_conf_file="$conf_dir/redshift.conf"
-
-    # TODO: I have no idea what this is actually doing
-    # echo "Checking/creating redshift conf dir"
-    # if ! mkdir -p "$(dirname "$redshift_conf_file")"; then
-    #     echo "Unable to create directory $(dirname "$redshift_conf_file"). Check permissions"
-    #     exit 1
-    # fi
 
     # Day and night are both initially set for 6500k to make it more obvious when setting a low
     # Kelvin value for testing
@@ -321,13 +312,17 @@ EOF
     fi
 fi
 
+# Post-install steps:
+# - Verify Redshift works
+# - Edit temp and location configs
+
 ##############
 # Get Dotfiles
 ##############
 
 dotfiles_url="https://github.com/mikejmcguirk/dotfiles"
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     if [ -z "$dotfiles_url" ] ; then
         echo "Error: dotfiles_url must be set."
         exit 1
@@ -351,7 +346,6 @@ if $fresh_install; then
     chmod +x "$local_bin_dir/maim-script"
     chmod +x "$local_bin_dir/rofi-scripts/rofi-power"
 fi
-
 
 #############################
 # Gnome Keyring and libsecret
@@ -387,7 +381,7 @@ fi
 # Window Manager
 ################
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     # Xserver
     sudo apt install -y xorg
 
@@ -406,7 +400,6 @@ if $fresh_install; then
     # Backend
     sudo apt install -y dbus
     sudo apt install -y dbus-x11
-
 
     sudo apt install -y upower # Brave uses this to check laptop power
     # Brave complains/has dbus issues if it cannot see the policykit user
@@ -437,22 +430,11 @@ EOF
     # fi
 fi
 
-# Startup Options:
-
-# - brave throws dbus errors like crazy
-
-# i3 + lightdm:
-# - user paths are not imported
-
-# i3 + default session script
-# - brave keyring error
-# - other brave SSL errors
-
 ######
 # rofi
 ######
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y rofi
 
     # We want to be able to reboot and shutdown from Rofi
@@ -493,6 +475,9 @@ EOF
 
     echo "Successfully configured $reboot_shutdown_file"
 fi
+
+# Post-install steps:
+# - Verify that reboot/poweroff work from cmd without sudo
 
 ##############
 # i3lock-color
@@ -570,7 +555,7 @@ if [[ "$fresh_install" == true || "$i3lock_update" == true ]]; then
     cd "$HOME"
 fi
 
-if $fresh_install; then
+if [[ "$fresh_install" == true ]] ; then
     cat << EOF >> "$HOME/.bashrc"
 
 export PATH="\$PATH:$i3_color_build_dir"
@@ -723,6 +708,7 @@ fi
 # Post-install checks:
 # - Login to Spotify and verify it can play music
 # - Verify that the prefs file was created successfully
+# - Editing settings in GUI (such as streaming quality)
 
 ###############
 # Brave Browser
@@ -735,6 +721,18 @@ if [[ "$fresh_install" == true ]]; then
     echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
     sudo apt install -y brave-browser
 fi
+
+# Post-install checks:
+# - Verify no errors when opening in terminal
+# - Configure default pages
+# - Add bookmarks
+# - Disable ctrl+w/ctrl+W keys (might need Shortkeys)
+# - Extensions:
+#   - Dark reader
+#   - Return Youtube dislike
+#   - Youtube non-stop
+#   - 7TV
+#   - Onetab
 
 ########
 # Neovim
@@ -806,6 +804,19 @@ export PATH="\$PATH:$nvim_install_dir/bin"
 EOF
 fi
 
+# Post-install steps:
+# - Run ``which nvim`` to verify the right path is being seen
+# - Run nvim to pull in plugins
+# - Verify the LSP/formatter/linter work for the following:
+#   - lua
+#   - python
+#   - Javascript
+#   - html
+#   - css
+#   - go
+#   - rust
+#   - toml
+
 ######
 # Btop
 ######
@@ -851,6 +862,9 @@ if [[ "$fresh_install" == true ]]; then
 export PATH="\$PATH:$btop_install_dir/bin"
 EOF
 fi
+
+# Post-install steps:
+# - Verify btop works
 
 ################
 # Install Lua LS
@@ -1143,6 +1157,10 @@ if [[ "$fresh_install" == true || "$discord_update" == true ]]; then
     rm -f "$deb_file"
 fi
 
+# Post-install steps:
+# - Verify login
+# - Verify that audio calling works both ways
+
 ############
 # VirtualBox
 ############
@@ -1255,6 +1273,13 @@ if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     curl -L -o "$ghostty_file" "$ghostty_url"
     chmod +x "$ghostty_file"
 fi
+
+# This causes ghostty to take 15+ seconds to load
+# Looking at the output when running ghostty in the terminal, GTK errors show
+sudo apt remove -y xdg-desktop-portal-gtk
+
+# Post-install steps:
+# - Verify this opens in i3 with $mod-enter with the proper font
 
 ######
 # Tmux
@@ -1392,7 +1417,7 @@ rust_bin_dir="$HOME/.cargo/bin"
 rustup_bin="$rust_bin_dir/rustup"
 cargo_bin="$rust_bin_dir/cargo"
 
-if $fresh_install ; then
+if [[ "$fresh_install" == true ]] ; then
     #I don't know why but rust-analyzer doesn't work unless you do this
     "$rustup_bin" component add rust-analyzer
     "$cargo_bin" install --features lsp --locked taplo-cli
@@ -1405,6 +1430,9 @@ else
     $cargo_bin install-update -a
 fi
 
+# Post-install steps:
+# - Verify tokei, rg, and rust-analyzer work
+
 #########
 # Wrap Up
 #########
@@ -1413,7 +1441,7 @@ fi
 # sudo update-initramfs -u
 
 what_happened="Update"
-if $fresh_install ; then
+if [[ "$fresh_install" == true ]] ; then
     what_happend="Install"
 fi
 echo "$what_happened script complete"
