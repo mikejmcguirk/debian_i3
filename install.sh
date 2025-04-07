@@ -81,7 +81,6 @@ EOF
     chmod 600 "$ssh_dir/config"
 fi
 
-
 ############
 # Apt Basics
 ############
@@ -1195,7 +1194,6 @@ if [[ "$fresh_install" == true || "$vbox_update" == true ]]; then
     rm -f "$vbox_deb_file"
 fi
 
-
 ###############
 # Add Nerd Font
 ###############
@@ -1231,7 +1229,6 @@ if [[ "$fresh_install" == true || "$nerd_font_update" == true ]]; then
     unzip -o "$fonts_dir/$nerd_font_filename" -d "$fonts_dir"
     rm "$fonts_dir/$nerd_font_filename"
 fi
-
 
 #########
 # Ghostty
@@ -1442,7 +1439,7 @@ fi
 
 what_happened="Update"
 if [[ "$fresh_install" == true ]] ; then
-    what_happend="Install"
+    what_happened="Install"
 fi
 echo "$what_happened script complete"
 
