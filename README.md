@@ -48,7 +48,7 @@ betterlockscreen -u "$HOME/.config/wallpaper/alena-aenami-rooflinesgirl-1k-2-som
 
 ## Known Issues:
 
-- Brave might not be able to access the keyring properly on the first login. This should be fixed after another restart. Run Brave from the terminal to see if this is occurring
+- Brave might not be able to access Gnome Keyring on first login. This issue should not recur after a restart. Run from the terminal to check for this
 
 DOTFILES INFO:
 
