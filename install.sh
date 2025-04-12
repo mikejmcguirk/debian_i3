@@ -93,17 +93,48 @@ sudo apt upgrade -y
 ####################
 
 sudo apt install -y network-manager
+sudo apt install -y wpasupplicant
 
 sudo systemctl stop networking
 sudo systemctl stop systemd-networkd
 sudo systemctl disable networking
 sudo systemctl disable systemd-networkd
 
-if ! grep -q "managed=true" /etc/NetworkManager/NetworkManager.conf; then
-    echo "Configuring NetworkManager to manage all devices..."
-    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' /etc/NetworkManager/NetworkManager.conf
+nm_conf="/etc/NetworkManager/NetworkManager.conf"
+mac_config="wifi.scan-rand-mac-address=no"
+
+sudo cp $nm_conf ${nm_conf}.bak
+
+if ! sudo grep -q "\[main\]" "$nm_conf"; then
+    sudo bash -c "echo '[main]' >> $nm_conf"
 fi
 
+# TODO: This re-creates what I did manually, but the scripting needs tested
+if ! sudo grep -q "$mac_config" "$nm_conf"; then
+    sudo sed -i "/\[main\]/a $mac_config" "$nm_conf"
+    echo "Configuration updated successfully"
+else
+    echo "Configuration already exists"
+fi
+
+if ! grep -q "managed=true" $nm_conf; then
+    echo "Configuring NetworkManager to manage all devices..."
+    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' $nm_conf
+fi
+
+# TODO: This re-creates what I did manually, but the scripting needs tested
+interfaces="/etc/network/interfaces"
+interfaces_bak="${interfaces}.bak"
+sudo mv "$interfaces" "${interfaces_bak}"
+sudo tee "$interfaces" > /dev/null << 'EOF'
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+EOF
+
+sudo systemctl enable wpa_supplicant
+sudo systemctl start wpa_supplicant
 sudo systemctl enable NetworkManager
 sudo systemctl restart NetworkManager # Restart to pickup the re-written config
 
@@ -162,6 +193,8 @@ fi
 # Utilities
 ###########
 
+# TODO: Figure out a way to give gnome-disks permission to mount disks without sudo
+
 if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y curl
     sudo apt install -y xclip # For copy/paste out of Neovim
@@ -185,20 +218,8 @@ if [[ "$fresh_install" == true ]] ; then
     echo "kernel.perf_event_paranoid = -1" | sudo tee /etc/sysctl.conf
 
     systemctl --user start dconf.service
-    # When you run this with the ghostty appimage open, the appimage environment breaks
-    # the path to the linux .so files this relies on
-    # Just run it now since everything should be dark mode anyway
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 fi
-
-# Post-install steps:
-# - Verify that copy/paste works in Nvim
-# - Verify that the tmux windowizer works
-# - Check that qalculate is in Dark mode
-# - Verify that gnome-disks is in dark mode and can detect all drives
-# - Setup rsync backups
-# - Test maim screenshot hotkey
-# - Verify you can do a cargo flamegraph with rust
 
 ###########
 # Dev Tools
@@ -208,9 +229,6 @@ if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y shellcheck
     sudo apt install -y llvm
 fi
-
-# Post-install steps:
-# - Verify in Nvim that shellcheck works
 
 #####
 # Git
@@ -235,11 +253,6 @@ if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y natpmpc
 fi
 
-# TODO: Note where wireguard files actually go
-
-# Post-install steps:
-# - Configure Wireguard files
-
 ##################
 # General Programs
 ##################
@@ -252,15 +265,12 @@ if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y kolourpaint
     sudo apt install -y evince
     sudo apt install -y thunar
+    sudo apt install -y eog
     sudo apt install -y gtk2-engines-murrine
     sudo apt install -y arc-theme
 fi
 
-# Post-Install steps:
-# - Verify VLC players audio and video
-# - Verify Thunar is in dark mode
-# - Do open with > image viewer in Thunar to set default option
-# - Configure qbittorrent
+# TODO: How do we script opening with eog from Thunar by default?
 
 ##########
 # Redshift
@@ -273,16 +283,12 @@ if [[ "$fresh_install" == true ]] ; then
     [ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
     redshift_conf_file="$conf_dir/redshift.conf"
 
-    # Day and night are both initially set for 6500k to make it more obvious when setting a low
-    # Kelvin value for testing
     # lat and lon are set for zero to avoid dox
     echo "Writing Redshift configuration to $redshift_conf_file..."
     if cat << 'EOF' > "$redshift_conf_file"
 [redshift]
-#temp-day=6500
-#temp-night=4000
 temp-day=6500
-temp-night=6500
+temp-night=4000
 adjustment-method=randr
 location-provider=manual
 
@@ -297,10 +303,6 @@ EOF
         exit 1
     fi
 fi
-
-# Post-install steps:
-# - Verify Redshift works
-# - Edit temp and location configs
 
 ##############
 # Get Dotfiles
@@ -329,7 +331,8 @@ if [[ "$fresh_install" == true ]] ; then
     sudo cp "$conf_dir/templates/login" "$pam_d_dir"
 
     chmod +x "$conf_dir/polybar/launch-polybar"
-    chmod +x "$local_bin_dir/maim-script"
+    chmod +x "$conf_dir/start-redshift.sh"
+    chmod +x "$local_bin_dir/maim-script.sh"
     chmod +x "$local_bin_dir/rofi-scripts/rofi-power"
 fi
 
@@ -346,6 +349,8 @@ if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y libsecret-1-dev
 fi
 
+# TODO: Verify this works properly and fix weird Brave issue
+
 libsecret_path="/usr/share/doc/git/contrib/credential/libsecret"
 cd $libsecret_path
 sudo make
@@ -358,10 +363,6 @@ if [[ "$fresh_install" == true ]] ; then
 export PATH="\$PATH:$libsecret_path"
 EOF
 fi
-
-# Post-Install Steps:
-# - Verify that Brave opens without asking for a password to unlock the keyring
-# - Verify that you can store a git token
 
 ################
 # Window Manager
@@ -402,18 +403,54 @@ if [ -f "$HOME/.bashrc_custom" ]; then
 fi
 EOF
     fi
+fi
 
-    # FUTURE: This seems like a cool tool: https://github.com/svenstaro/rofi-calc
-    # But skipping from now because it looks to require a lot of building from source
+################
+# nVidia Drivers
+################
 
-    # TODO: This is apparently supposed to ignore the nVidia stuff if it's a VM
-    # if [ -n "$(lspci | grep -i nvidia)" ]; then
-    #     echo "Detected NVIDIA GPU, installing drivers..."
-    #     sudo apt install -y nvidia-driver linux-headers-$(uname -r)
-    #     sudo nvidia-xconfig
-    # else
-    #     echo "No NVIDIA GPU detected, skipping driver installation (safe for VMs)."
-    # fi
+# Note: This only gets you setup to perform the checks manually
+# Leaving this not fully automated for now because I do not have hardware I can use purely
+# for testing
+
+
+if [[ "$fresh_install" == true ]] ; then
+    sources_file="/etc/apt/sources.list"
+    backup_file="/etc/apt/sources.list.bak.$(date +%Y%m%d_%H%M%S)"
+    original_line="deb http://deb.debian.org/debian/ bookworm main non-free-firmware"
+    new_line="deb http://deb.debian.org/debian/ bookworm main non-free-firmware contrib non-free"
+
+    if [ ! -f "$sources_file" ]; then
+        echo "Error: $sources_file does not exist"
+        # We have seriously problems if apt sources isn't present
+        exit 1
+    fi
+
+    sudo cp "$sources_file" "$backup_file"
+    if [ $? -eq 0 ]; then
+        echo "Backup created at $backup_file"
+    else
+        echo "Error: Failed to create backup for apt sources"
+        # Do not continue if we cannot backup apt sources
+        exit 1
+    fi
+
+    sudo sed -i "s|$original_line|$new_line|" "$sources_file"
+    if [ $? -eq 0 ]; then
+        echo "Successfully updated $sources_file"
+    else
+        echo "Error: Failed to update $sources_file"
+        exit 1
+    fi
+
+    sudo apt update
+    sudo apt install -y linux-headers-$(uname -r)
+    sudo apt install -y libglvnd-dev
+    # These are repeats, but here for documentary purposes
+    sudo apt install -y build-essential
+    sudo apt install -y pkg-config
+
+    sudo apt install -y nvidia-detect
 fi
 
 ######
@@ -461,9 +498,6 @@ EOF
 
     echo "Successfully configured $reboot_shutdown_file"
 fi
-
-# Post-install steps:
-# - Verify that reboot/poweroff work from cmd without sudo
 
 ##############
 # i3lock-color
@@ -630,9 +664,7 @@ if [[ "$fresh_install" == true || "$bls_update" == true ]]; then
     wget $bls_url -O - -q | bash -s user latest
 fi
 
-# Post-Install Checks:
-# - After running the wallpaper update command, lock the screen to verify it works
-# - When entering the password to unlock, verify the colors show correctly
+# TODO: Why does this show on both monitors?
 
 #########
 # Spotify
@@ -691,28 +723,11 @@ if [[ "$fresh_install" == true || "$spotify_update" == true ]]; then
     echo "Spotify preferences updated successfully."
 fi
 
-# Post-install checks:
-# - Login to Spotify and verify it can play music
-# - Verify that the prefs file was created successfully
-# - Editing settings in GUI (such as streaming quality)
-
 ###############
 # Brave Browser
 ###############
 
 curl -fsS https://dl.brave.com/install.sh | sh
-
-# Post-install checks:
-# - Verify no errors when opening in terminal
-# - Configure default pages
-# - Add bookmarks
-# - Disable ctrl+w/ctrl+W keys (might need Shortkeys)
-# - Extensions:
-#   - Dark reader
-#   - Return Youtube dislike
-#   - Youtube non-stop
-#   - 7TV
-#   - Onetab
 
 ########
 # Neovim
@@ -784,19 +799,6 @@ export PATH="\$PATH:$nvim_install_dir/bin"
 EOF
 fi
 
-# Post-install steps:
-# - Run ``which nvim`` to verify the right path is being seen
-# - Run nvim to pull in plugins
-# - Verify the LSP/formatter/linter work for the following:
-#   - lua
-#   - python
-#   - Javascript
-#   - html
-#   - css
-#   - go
-#   - rust
-#   - toml
-
 ######
 # Btop
 ######
@@ -842,9 +844,6 @@ if [[ "$fresh_install" == true ]]; then
 export PATH="\$PATH:$btop_install_dir/bin"
 EOF
 fi
-
-# Post-install steps:
-# - Verify btop works
 
 ################
 # Install Lua LS
@@ -924,10 +923,6 @@ if [[ "$fresh_install" == true || "$obsidian_update" == true ]]; then
     sudo apt install -y "$local_dir/$obsidian_file" || { echo "Unable to install Obsidian Deb file"; exit 1; }
     rm "$local_dir/$obsidian_file" || { echo "Unable to delete Obsidian Deb file"; exit 1; }
 fi
-
-# Post-Install Checks:
-# - After moving the vault to the new system, make Obsidian open to it by default
-# - If using the Nvim Obsidian extension, make sure using the Obsidian Open command works
 
 ##################
 # Python Ecosystem
@@ -1137,10 +1132,6 @@ if [[ "$fresh_install" == true || "$discord_update" == true ]]; then
     rm -f "$deb_file"
 fi
 
-# Post-install steps:
-# - Verify login
-# - Verify that audio calling works both ways
-
 ############
 # VirtualBox
 ############
@@ -1215,10 +1206,16 @@ fi
 # Ghostty
 #########
 
-# TODO: If GTK is up-to-date enough on Debian 12, change this to building from source
+zig_link="https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz"
+ziglang_dir="/opt/ziglang"
+zig_file=$(basename $zig_link)
+zig_filepath=$ziglang_dir/"$zig_file"
+zig_dir=$(basename "$zig_filepath" .tar.xz)
 
-# https://github.com/neovim/neovim/releases
-ghostty_url="https://github.com/psadi/ghostty-appimage/releases/download/v1.1.2%2B4/Ghostty-1.1.2-x86_64.AppImage"
+ghostty_repo="https://github.com/ghostty-org/ghostty"
+ghostty_tag="v1.1.3"
+ghostty_dir="$HOME/.local/bin/ghostty-git"
+
 ghostty_update=false
 for arg in "$@"; do
     if [[ "$arg" == "ghostty" ]]; then
@@ -1229,35 +1226,76 @@ for arg in "$@"; do
     fi
 done
 
-if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
+zig_update=false
+for arg in "$@"; do
+    if [[ "$arg" == "zig" ]]; then
+        zig_update=true
+        echo "Updating zig..."
+
+        break
+    fi
+done
+
+if [ "$fresh_install" = true ] ; then
     echo "Installing Ghostty..."
+    echo "Installing zig..."
+
+    # Could be repeats, but here for insurance/documentation
+    sudo apt install -y libgtk-4-dev
+    sudo apt install -y libadwaita-1-dev
+    sudo apt install -y git
+    sudo apt install -y blueprint-compiler
+    sudo apt install -y gettext
+    # ThePrimeagen has these included
+    sudo apt install -y llvm
+    sudo apt install -y lld
+    sudo apt install -y llvm-dev
+    sudo apt install -y liblld-dev
+    sudo apt install -y clang
+    sudo apt install -y libclang-dev
+    sudo apt install -y libglib2.0-dev
+
+    [ ! -d "$ziglang_dir" ] && mkdir -p "$ziglang_dir"
+    [ ! -d "$ghostty_dir" ] && mkdir -p "$ghostty_dir"
+fi
+
+if [ "$fresh_install" = true ] || [ "$zig_update" = true ]; then
+    sudo wget -P $ziglang_dir $zig_link
+    sudo tar -Jxf "$zig_filepath" -C /opt/ziglang
+    sudo rm "$zig_filepath"
+fi
+
+if [ "$fresh_install" = true ] || [ "$zig_update" = true ] || [ "$ghostty_update" ]; then
+    export PATH="$PATH:$ziglang_dir/$zig_dir"
+    if ! zig version; then
+        echo "Error: zig is not accessible or failed to run."
+        exit 1
+    fi
 fi
 
 if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
-    if [ -z "$ghostty_url" ]; then
-        echo "Error: ghostty_url must be set."
-        exit 1
-    fi
+    cd "$ghostty_dir" || { echo "Error: Cannot cd to $ghostty_dir"; exit 1; }
+fi
 
-    ghostty_dir="$local_bin_dir"
-    [ ! -d "$ghostty_dir" ] && mkdir -p "$ghostty_dir"
-    ghostty_file="$ghostty_dir/ghostty"
+if [ "$fresh_install" = true ] ; then
+    git clone $ghostty_repo .
+fi
 
-    if [ -f "$ghostty_file" ]; then
-        echo "Removing existing $ghostty_file..."
-        rm "$ghostty_file"
-    fi
+if [ "$ghostty_update" = true ] ; then
+    git pull
+fi
 
-    curl -L -o "$ghostty_file" "$ghostty_url"
-    chmod +x "$ghostty_file"
+if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
+    git checkout "$ghostty_tag"
+    # This will send the built file to ~/.local/bin
+    zig build -p "$local_dir" -Doptimize=ReleaseFast
+
+    cd "$HOME"
 fi
 
 # This causes ghostty to take 15+ seconds to load
 # Looking at the output when running ghostty in the terminal, GTK errors show
 sudo apt remove -y xdg-desktop-portal-gtk
-
-# Post-install steps:
-# - Verify this opens in i3 with $mod-enter with the proper font
 
 ######
 # Tmux
@@ -1344,9 +1382,6 @@ if [[ "$tmux_update" == true ]]; then
     cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
 
-# Post-Install Steps:
-# - Open tmux and use prefix+I to load plugins
-
 #############
 # Apt Cleanup
 #############
@@ -1408,13 +1443,12 @@ else
     $cargo_bin install-update -a
 fi
 
-# Post-install steps:
-# - Verify tokei, rg, and rust-analyzer work
-
 #########
 # Wrap Up
 #########
 
+# This is needed to make my Keychron function keys work properly on Linux Mint
+# Does not seem necessary on Debian, but keeping the code
 # echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
 # sudo update-initramfs -u
 
