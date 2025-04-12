@@ -1260,6 +1260,9 @@ if [ "$fresh_install" = true ] ; then
     sudo apt install -y clang
     sudo apt install -y libclang-dev
     sudo apt install -y libglib2.0-dev
+    # Other stuff that might help
+    sudo apt install -y libegl1-mesa-dev
+    sudo apt install -y libvulkan-dev
 
     [ ! -d "$ziglang_dir" ] && mkdir -p "$ziglang_dir"
     [ ! -d "$ghostty_dir" ] && mkdir -p "$ghostty_dir"
@@ -1295,8 +1298,7 @@ fi
 if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     git checkout "$ghostty_tag"
     # This will send the built file to ~/.local/bin
-    echo "Building ghostty..."
-    zig version
+    rm -rf "$HOME/.cache/zig"
     zig build -p "$local_dir" -Doptimize=ReleaseFast
 
     cd "$HOME"
