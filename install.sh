@@ -92,85 +92,87 @@ sudo apt upgrade -y
 # Network Connection
 ####################
 
-sudo apt install -y network-manager
-sudo apt install -y wpasupplicant
+if [[ "$fresh_install" == true ]] ; then
+    sudo apt install -y network-manager
+    sudo apt install -y wpasupplicant
 
-sudo systemctl stop networking
-sudo systemctl stop systemd-networkd
-sudo systemctl disable networking
-sudo systemctl disable systemd-networkd
+    sudo systemctl stop networking
+    sudo systemctl stop systemd-networkd
+    sudo systemctl disable networking
+    sudo systemctl disable systemd-networkd
 
-nm_conf="/etc/NetworkManager/NetworkManager.conf"
-mac_config="wifi.scan-rand-mac-address=no"
+    nm_conf="/etc/NetworkManager/NetworkManager.conf"
+    mac_config="wifi.scan-rand-mac-address=no"
 
-sudo cp $nm_conf ${nm_conf}.bak
+    sudo cp $nm_conf ${nm_conf}.bak
 
-if ! sudo grep -q "\[main\]" "$nm_conf"; then
-    sudo bash -c "echo '[main]' >> $nm_conf"
-fi
+    if ! sudo grep -q "\[main\]" "$nm_conf"; then
+        sudo bash -c "echo '[main]' >> $nm_conf"
+    fi
 
-# TODO: This re-creates what I did manually, but the scripting needs tested
-if ! sudo grep -q "$mac_config" "$nm_conf"; then
-    sudo sed -i "/\[main\]/a $mac_config" "$nm_conf"
-    echo "Configuration updated successfully"
-else
-    echo "Configuration already exists"
-fi
+    # TODO: This re-creates what I did manually, but the scripting needs tested
+    if ! sudo grep -q "$mac_config" "$nm_conf"; then
+        sudo sed -i "/\[main\]/a $mac_config" "$nm_conf"
+        echo "Configuration updated successfully"
+    else
+        echo "Configuration already exists"
+    fi
 
-if ! grep -q "managed=true" $nm_conf; then
-    echo "Configuring NetworkManager to manage all devices..."
-    sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' $nm_conf
-fi
+    if ! grep -q "managed=true" $nm_conf; then
+        echo "Configuring NetworkManager to manage all devices..."
+        sudo sed -i -e '/\[ifupdown\]/a managed=true' -e '/managed=false/d' $nm_conf
+    fi
 
-# TODO: This re-creates what I did manually, but the scripting needs tested
-interfaces="/etc/network/interfaces"
-interfaces_bak="${interfaces}.bak"
-sudo mv "$interfaces" "${interfaces_bak}"
-sudo tee "$interfaces" > /dev/null << 'EOF'
+    # TODO: This re-creates what I did manually, but the scripting needs tested
+    interfaces="/etc/network/interfaces"
+    interfaces_bak="${interfaces}.bak"
+    sudo mv "$interfaces" "${interfaces_bak}"
+    sudo tee "$interfaces" > /dev/null << 'EOF'
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
 source /etc/network/interfaces.d/*
 EOF
 
-sudo systemctl enable wpa_supplicant
-sudo systemctl start wpa_supplicant
-sudo systemctl enable NetworkManager
-sudo systemctl restart NetworkManager # Restart to pickup the re-written config
+    sudo systemctl enable wpa_supplicant
+    sudo systemctl start wpa_supplicant
+    sudo systemctl enable NetworkManager
+    sudo systemctl restart NetworkManager # Restart to pickup the re-written config
 
-echo "Available network devices:"
-nmcli device
+    echo "Available network devices:"
+    nmcli device
 
-WIFI_DEVICE=$(nmcli device | grep wifi | awk '{print $1}' || true)
-if [ -n "$WIFI_DEVICE" ]; then
-    echo "Scanning for WiFi networks on $WIFI_DEVICE..."
-    nmcli device wifi list ifname "$WIFI_DEVICE"
-else
-    echo "No WiFi device detected."
-fi
+    WIFI_DEVICE=$(nmcli device | grep wifi | awk '{print $1}' || true)
+    if [ -n "$WIFI_DEVICE" ]; then
+        echo "Scanning for WiFi networks on $WIFI_DEVICE..."
+        nmcli device wifi list ifname "$WIFI_DEVICE"
+    else
+        echo "No WiFi device detected."
+    fi
 
-echo "Available devices from 'nmcli device':"
-nmcli device | awk 'NR>1 {print $1 " (" $2 ")"}'
-read -p "Enter the device name to connect (e.g., enp0s3 or wlan0): " DEVICE
+    echo "Available devices from 'nmcli device':"
+    nmcli device | awk 'NR>1 {print $1 " (" $2 ")"}'
+    read -p "Enter the device name to connect (e.g., enp0s3 or wlan0): " DEVICE
 
-if nmcli device show "$DEVICE" | grep -q "GENERAL.TYPE:.*wifi"; then
-    echo "WiFi device selected: $DEVICE"
-    nmcli device wifi list ifname "$DEVICE"
-    read -p "Enter the SSID of the WiFi network: " SSID
-    read -s -p "Enter the password for '$SSID': " PASSWORD
-    echo
-    nmcli device wifi connect "$SSID" password "$PASSWORD" ifname "$DEVICE"
-else
-    echo "Wired/bridge device selected: $DEVICE"
-    nmcli device connect "$DEVICE"
-fi
+    if nmcli device show "$DEVICE" | grep -q "GENERAL.TYPE:.*wifi"; then
+        echo "WiFi device selected: $DEVICE"
+        nmcli device wifi list ifname "$DEVICE"
+        read -p "Enter the SSID of the WiFi network: " SSID
+        read -s -p "Enter the password for '$SSID': " PASSWORD
+        echo
+        nmcli device wifi connect "$SSID" password "$PASSWORD" ifname "$DEVICE"
+    else
+        echo "Wired/bridge device selected: $DEVICE"
+        nmcli device connect "$DEVICE"
+    fi
 
-echo "Checking connectivity..."
-if ping -c 4 google.com >/dev/null 2>&1; then
-    echo "Network is up!"
-else
-    echo "Network failed. Check 'nmcli device' or logs with 'journalctl -u NetworkManager'."
-    exit 1
+    echo "Checking connectivity..."
+    if ping -c 4 google.com >/dev/null 2>&1; then
+        echo "Network is up!"
+    else
+        echo "Network failed. Check 'nmcli device' or logs with 'journalctl -u NetworkManager'."
+        exit 1
+    fi
 fi
 
 #######################
@@ -562,6 +564,7 @@ fi
 if [ "$fresh_install" == true ]; then
     git clone "$i3lock_repo" "$i3_color_git_dir"
 elif [ "$i3lock_update" == true ]; then
+    git checkout master
     git pull
 fi
 
@@ -613,6 +616,7 @@ fi
 if [[ "$fresh_install" == true ]]; then
     git clone $magick_repo "$magick_git_dir"
 elif [[ "$magick_update" == true ]]; then
+    git checkout main
     git pull
 fi
 
@@ -727,7 +731,9 @@ fi
 # Brave Browser
 ###############
 
-curl -fsS https://dl.brave.com/install.sh | sh
+if [[ "$fresh_install" == true ]]; then
+    curl -fsS https://dl.brave.com/install.sh | sh
+fi
 
 ########
 # Neovim
@@ -1282,6 +1288,7 @@ if [ "$fresh_install" = true ] ; then
 fi
 
 if [ "$ghostty_update" = true ] ; then
+    git checkout main
     git pull
 fi
 
@@ -1338,6 +1345,7 @@ fi
 cd "$tmux_git_dir" || { echo "Error: Cannot cd to $tmux_git_dir"; exit 1; }
 
 if [[ "$tmux_update" == true ]]; then
+    git checkout master
     git pull
 fi
 
@@ -1378,6 +1386,7 @@ fi
 # FUTURE: Can't the plugin manager just handle this?
 if [[ "$tmux_update" == true ]]; then
     cd "$power_dir" || { echo "Error: Cannot cd to $power_dir"; exit 1; }
+    git checkout master
     git pull
     cd "$HOME" || { echo "Error: Cannot cd to $HOME"; exit 1; }
 fi
