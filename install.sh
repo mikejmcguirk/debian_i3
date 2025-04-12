@@ -1304,9 +1304,11 @@ if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     cd "$HOME"
 fi
 
+# Or maybe we need this for audio
+# Will it work with updated gtk?
 # This causes ghostty to take 15+ seconds to load
 # Looking at the output when running ghostty in the terminal, GTK errors show
-sudo apt remove -y xdg-desktop-portal-gtk
+# sudo apt remove -y xdg-desktop-portal-gtk
 
 ######
 # Tmux
