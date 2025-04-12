@@ -1295,6 +1295,8 @@ fi
 if [ "$fresh_install" = true ] || [ "$ghostty_update" = true ]; then
     git checkout "$ghostty_tag"
     # This will send the built file to ~/.local/bin
+    echo "Building ghostty..."
+    zig version
     zig build -p "$local_dir" -Doptimize=ReleaseFast
 
     cd "$HOME"
