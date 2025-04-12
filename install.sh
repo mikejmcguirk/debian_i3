@@ -1271,7 +1271,7 @@ if [ "$fresh_install" = true ] || [ "$zig_update" = true ]; then
     sudo rm "$zig_filepath"
 fi
 
-if [ "$fresh_install" = true ] || [ "$zig_update" = true ] || [ "$ghostty_update" ]; then
+if [ "$fresh_install" = true ] || [ "$zig_update" = true ] || [ "$ghostty_update" = true ]; then
     export PATH="$PATH:$ziglang_dir/$zig_dir"
     if ! zig version; then
         echo "Error: zig is not accessible or failed to run."
