@@ -254,19 +254,6 @@ if [[ "$fresh_install" == true ]] ; then
     sudo apt install -y thunar
     sudo apt install -y gtk2-engines-murrine
     sudo apt install -y arc-theme
-
-    gtk_config_dir="$conf_dir/gtk-3.0"
-    [ ! -d "$gtk_config_dir" ] && mkdir -p "$gtk_config_dir"
-    cat << EOF > "$gtk_config_dir/settings.ini"
-[Settings]
-gtk-theme-name=Arc-Dark
-gtk-application-prefer-dark-theme=1
-EOF
-
-    cat << EOF > "$HOME/.gtkrc-2.0"
-gtk-theme-name="Arc-Dark"
-gtk-icon-theme-name="Adwaita"
-EOF
 fi
 
 # Post-Install steps:
